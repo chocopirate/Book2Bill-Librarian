@@ -1,8 +1,6 @@
 import pandas as pd
-import numpy as np
 import ibm_db
 import ibm_db_dbi
-import xlwings as xl
 from tkinter import *
 from tkinter import filedialog
 
