@@ -58,13 +58,11 @@ class Window(Frame):
 
     @staticmethod
     def load_customers():
-        global customers#, bus_line, major_map
+        global customers
         file = filedialog.askopenfilename(parent=root, title="Load an excel file with customer mapping")
         if file is not None:
-            #major_map = pd.read_excel(file, sheet_name='Major map', converters={'MAJOR': str})
             customers = pd.read_excel(file, sheet_name='Customers', converters={'MAJOR': str})
-            #bus_line = pd.read_excel(file, sheet_name='BusLine map', converters={'MAJOR': str})
-            return customers#, bus_line, major_map
+            return customers
 
     @staticmethod
     def retrieve_fiw():
@@ -105,8 +103,7 @@ class Window(Frame):
                 fiw = pd.read_sql(fiw_sql, conn_fiw)
                 print('FIW data retrieved successfully')
                 break
-       # fiw = fiw.merge(bus_line, how='left', on='MAJOR')
-       # fiw = fiw.merge(customers, how='left', on='CONTRACT')
+        fiw = fiw.merge(customers, how='left', on='CONTRACT')
         return fiw
 
     @staticmethod
@@ -140,15 +137,14 @@ class Window(Frame):
                 conn_engine_bms = ibm_db.connect(dsn_bms, "", "")
                 conn_bms = ibm_db_dbi.Connection(conn_engine_bms)
                 # add fiw_sql is None check, if None then call function
-                bms = pd.read_sql(bms_sql, conn_bms)
             except Exception:
                 continue
             else:
+                print('Retrieving BMS data...')
+                bms = pd.read_sql(bms_sql, conn_bms)
+                print('BMS data retrieved successfully')
                 break
-        bms = bms.merge(major_map, how='left', on='BUSINESSTYPE')
-        bms = bms.merge(bus_line, how='left', on='MAJOR')
         bms = bms.merge(customers, how='left', on='CONTRACT')
-        print(bms.shape)
         return bms
 
     @staticmethod
@@ -168,12 +164,12 @@ class Window(Frame):
         level1['BMS AMOUNT'] = level1['BMS AMOUNT'] * -1
         level1.fillna(0, inplace=True)
 
-        fiw2 = fiw[['MONTH', 'CUSTOMER', 'CONTRACT', 'BUSINESSLINE', 'MAJOR', 'INVOICE', 'AMOUNT']].groupby(
-            by=['MONTH', 'CUSTOMER', 'CONTRACT', 'BUSINESSLINE', 'MAJOR', 'INVOICE']).sum()
+        fiw2 = fiw[['MONTH', 'CUSTOMER', 'CONTRACT', 'BMDIV', 'MAJOR', 'INVOICE', 'AMOUNT']].groupby(
+            by=['MONTH', 'CUSTOMER', 'CONTRACT', 'BMDIV', 'MAJOR', 'INVOICE']).sum()
         fiw2['FIW AMOUNT'] = fiw2['AMOUNT']
 
-        bms2 = bms[['MONTH', 'CUSTOMER', 'CONTRACT', 'BUSINESSLINE', 'MAJOR', 'INVOICE', 'AMOUNT']].groupby(
-            by=['MONTH', 'CUSTOMER', 'CONTRACT', 'BUSINESSLINE', 'MAJOR', 'INVOICE']).sum()
+        bms2 = bms[['MONTH', 'CUSTOMER', 'CONTRACT', 'BMDIV', 'MAJOR', 'INVOICE', 'AMOUNT']].groupby(
+            by=['MONTH', 'CUSTOMER', 'CONTRACT', 'BMDIV', 'MAJOR', 'INVOICE']).sum()
         bms2['BMS AMOUNT'] = bms2['AMOUNT']
 
         level2 = fiw2.subtract(bms2, axis='columns', fill_value=0)
@@ -186,13 +182,13 @@ class Window(Frame):
         level2.fillna(0, inplace=True)
 
         fiw3 = fiw[
-            ['MONTH', 'CUSTOMER', 'CONTRACT', 'BUSINESSLINE', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'AMOUNT']].groupby(
-            by=['MONTH', 'CUSTOMER', 'CONTRACT', 'BUSINESSLINE', 'MAJOR', 'INVOICE', 'PROJECTNUM']).sum()
+            ['MONTH', 'CUSTOMER', 'CONTRACT', 'BMDIV', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'AMOUNT']].groupby(
+            by=['MONTH', 'CUSTOMER', 'CONTRACT', 'BMDIV', 'MAJOR', 'INVOICE', 'PROJECTNUM']).sum()
         fiw3['FIW AMOUNT'] = fiw3['AMOUNT']
 
         bms3 = bms[
-            ['MONTH', 'CUSTOMER', 'CONTRACT', 'BUSINESSLINE', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'AMOUNT']].groupby(
-            by=['MONTH', 'CUSTOMER', 'CONTRACT', 'BUSINESSLINE', 'MAJOR', 'INVOICE', 'PROJECTNUM']).sum()
+            ['MONTH', 'CUSTOMER', 'CONTRACT', 'BMDIV', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'AMOUNT']].groupby(
+            by=['MONTH', 'CUSTOMER', 'CONTRACT', 'BMDIV', 'MAJOR', 'INVOICE', 'PROJECTNUM']).sum()
         bms3['BMS AMOUNT'] = bms3['AMOUNT']
 
         level3 = fiw3.subtract(bms3, axis='columns', fill_value=0)
@@ -226,11 +222,12 @@ class Window(Frame):
         writer = pd.ExcelWriter(savefile, engine='xlsxwriter')
         fiw.to_excel(writer, sheet_name='FIW', index=False)
         bms.to_excel(writer, sheet_name='BMS', index=False)
-        ytd_delta.to_excel(writer, sheet_name='YTD Delta')
+        ytd_delta.to_excel(writer, sheet_name='YTD Delta', index=False)
         level1.to_excel(writer, sheet_name='Level 1', index=False)
         level2.to_excel(writer, sheet_name='Level 2', index=False)
         level3.to_excel(writer, sheet_name='Level 3', index=False)
         writer.save()
+        print("Data has been saved")
 
 
 # initialize tkinter class interface
