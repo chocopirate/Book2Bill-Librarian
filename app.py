@@ -17,22 +17,20 @@ class Window(Frame):
         self.master.title("Librarian GUI")
         self.pack(fill=BOTH, expand=1)
 
-        # button_fiw_sql.grid(row=2, column=1)  # , columnspan=2)
-        # button_bms_sql.place(x=6, y=6)
         button_fiw_sql = Button(self, text="Load FIW SQL", width=16, command=self.open_fiw_sql)
-        button_fiw_sql.pack()
+        button_fiw_sql.pack(fill=X)
         button_bms_sql = Button(self, text="Load BMS SQL", width=16, command=self.open_bms_sql)
-        button_bms_sql.pack()
+        button_bms_sql.pack(fill=X)
         button_customers = Button(self, text="Load customer data", width=16, command=self.load_customers)
-        button_customers.pack()
+        button_customers.pack(fill=X)
         button_retrieve_fiw = Button(self, text="Retrieve FIW data", width=16, command=self.retrieve_fiw)
-        button_retrieve_fiw.pack()
+        button_retrieve_fiw.pack(fill=X)
         button_run_bms = Button(self, text="Retrieve BMS data", width=16, command=self.retrieve_bms)
-        button_run_bms.pack()
+        button_run_bms.pack(fill=X)
         button_compare = Button(self, text="Compare data", width=16, command=self.compare_data)
-        button_compare.pack()
+        button_compare.pack(fill=X)
         button_save = Button(self, text="Save data", width=16, command=self.saver)
-        button_save.pack()
+        button_save.pack(fill=X)
 
         window_menu = Menu(self.master)
         self.master.config(menu=window_menu)
@@ -60,13 +58,11 @@ class Window(Frame):
 
     @staticmethod
     def load_customers():
-        global customers, bus_line, major_map
+        global customers
         file = filedialog.askopenfilename(parent=root, title="Load an excel file with customer mapping")
         if file is not None:
-            major_map = pd.read_excel(file, sheet_name='Major map', converters={'MAJOR': str})
             customers = pd.read_excel(file, sheet_name='Customers', converters={'MAJOR': str})
-            bus_line = pd.read_excel(file, sheet_name='BusLine map', converters={'MAJOR': str})
-            return customers, bus_line, major_map
+            return customers
 
     @staticmethod
     def retrieve_fiw():
@@ -99,12 +95,14 @@ class Window(Frame):
                 conn_engine_fiw = ibm_db.connect(dsn_fiw, "", "")
                 conn_fiw = ibm_db_dbi.Connection(conn_engine_fiw)
                 # add fiw_sql is None check, if None then call function
-                fiw = pd.read_sql(fiw_sql, conn_fiw)
+
             except Exception:
                 continue
             else:
+                print('Retrieving FIW data...')
+                fiw = pd.read_sql(fiw_sql, conn_fiw)
+                print('FIW data retrieved successfully')
                 break
-        fiw = fiw.merge(bus_line, how='left', on='MAJOR')
         fiw = fiw.merge(customers, how='left', on='CONTRACT')
         return fiw
 
@@ -139,27 +137,22 @@ class Window(Frame):
                 conn_engine_bms = ibm_db.connect(dsn_bms, "", "")
                 conn_bms = ibm_db_dbi.Connection(conn_engine_bms)
                 # add fiw_sql is None check, if None then call function
-                bms = pd.read_sql(bms_sql, conn_bms)
             except Exception:
                 continue
             else:
+                print('Retrieving BMS data...')
+                bms = pd.read_sql(bms_sql, conn_bms)
+                print('BMS data retrieved successfully')
                 break
-        bms = bms.merge(major_map, how='left', on='BUSINESSTYPE')
-        bms = bms.merge(bus_line, how='left', on='MAJOR')
         bms = bms.merge(customers, how='left', on='CONTRACT')
-        print(bms.shape)
         return bms
 
     @staticmethod
     def compare_data():
-        global level1, level2, level3, bms_ytd
-        fiw1 = fiw[['MONTH', 'CUSTOMER', 'CONTRACT', 'AMOUNT']][
-            fiw['MAJOR'].isin(['326', '323', '352', '366', '346', '374', '365'])].groupby(
-            by=['MONTH', 'CUSTOMER', 'CONTRACT']).sum()
+        global level1, level2, level3, ytd_delta
+        fiw1 = fiw[['MONTH', 'CUSTOMER', 'CONTRACT', 'AMOUNT']].groupby(by=['MONTH', 'CUSTOMER', 'CONTRACT']).sum()
         fiw1['FIW AMOUNT'] = fiw1['AMOUNT']
-        bms1 = bms[['MONTH', 'CUSTOMER', 'CONTRACT', 'AMOUNT']][
-            bms['MAJOR'].isin(['326', '323', '352', '366', '346', '374', '365'])].groupby(
-            by=['MONTH', 'CUSTOMER', 'CONTRACT']).sum()
+        bms1 = bms[['MONTH', 'CUSTOMER', 'CONTRACT', 'AMOUNT']].groupby(by=['MONTH', 'CUSTOMER', 'CONTRACT']).sum()
         bms1['BMS AMOUNT'] = bms1['AMOUNT']
 
         level1 = fiw1.subtract(bms1, axis='columns', fill_value=0)
@@ -171,14 +164,12 @@ class Window(Frame):
         level1['BMS AMOUNT'] = level1['BMS AMOUNT'] * -1
         level1.fillna(0, inplace=True)
 
-        fiw2 = fiw[['MONTH', 'CUSTOMER', 'CONTRACT', 'BUSINESSLINE', 'MAJOR', 'INVOICE', 'AMOUNT']][
-            fiw['MAJOR'].isin(['326', '323', '352', '366', '346', '374', '365'])].groupby(
-            by=['MONTH', 'CUSTOMER', 'CONTRACT', 'BUSINESSLINE', 'MAJOR', 'INVOICE']).sum()
+        fiw2 = fiw[['MONTH', 'CUSTOMER', 'CONTRACT', 'BMDIV', 'MAJOR', 'INVOICE', 'AMOUNT']].groupby(
+            by=['MONTH', 'CUSTOMER', 'CONTRACT', 'BMDIV', 'MAJOR', 'INVOICE']).sum()
         fiw2['FIW AMOUNT'] = fiw2['AMOUNT']
 
-        bms2 = bms[['MONTH', 'CUSTOMER', 'CONTRACT', 'BUSINESSLINE', 'MAJOR', 'INVOICE', 'AMOUNT']][
-            bms['MAJOR'].isin(['326', '323', '352', '366', '346', '374', '365'])].groupby(
-            by=['MONTH', 'CUSTOMER', 'CONTRACT', 'BUSINESSLINE', 'MAJOR', 'INVOICE']).sum()
+        bms2 = bms[['MONTH', 'CUSTOMER', 'CONTRACT', 'BMDIV', 'MAJOR', 'INVOICE', 'AMOUNT']].groupby(
+            by=['MONTH', 'CUSTOMER', 'CONTRACT', 'BMDIV', 'MAJOR', 'INVOICE']).sum()
         bms2['BMS AMOUNT'] = bms2['AMOUNT']
 
         level2 = fiw2.subtract(bms2, axis='columns', fill_value=0)
@@ -190,14 +181,14 @@ class Window(Frame):
         level2['BMS AMOUNT'] = level2['BMS AMOUNT'] * -1
         level2.fillna(0, inplace=True)
 
-        fiw3 = fiw[['MONTH', 'CUSTOMER', 'CONTRACT', 'BUSINESSLINE', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'AMOUNT']][
-            fiw['MAJOR'].isin(['326', '323', '352', '366', '346', '374', '365'])].groupby(
-            by=['MONTH', 'CUSTOMER', 'CONTRACT', 'BUSINESSLINE', 'MAJOR', 'INVOICE', 'PROJECTNUM']).sum()
+        fiw3 = fiw[
+            ['MONTH', 'CUSTOMER', 'CONTRACT', 'BMDIV', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'AMOUNT']].groupby(
+            by=['MONTH', 'CUSTOMER', 'CONTRACT', 'BMDIV', 'MAJOR', 'INVOICE', 'PROJECTNUM']).sum()
         fiw3['FIW AMOUNT'] = fiw3['AMOUNT']
 
-        bms3 = bms[['MONTH', 'CUSTOMER', 'CONTRACT', 'BUSINESSLINE', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'AMOUNT']][
-            bms['MAJOR'].isin(['326', '323', '352', '366', '346', '374', '365'])].groupby(
-            by=['MONTH', 'CUSTOMER', 'CONTRACT', 'BUSINESSLINE', 'MAJOR', 'INVOICE', 'PROJECTNUM']).sum()
+        bms3 = bms[
+            ['MONTH', 'CUSTOMER', 'CONTRACT', 'BMDIV', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'AMOUNT']].groupby(
+            by=['MONTH', 'CUSTOMER', 'CONTRACT', 'BMDIV', 'MAJOR', 'INVOICE', 'PROJECTNUM']).sum()
         bms3['BMS AMOUNT'] = bms3['AMOUNT']
 
         level3 = fiw3.subtract(bms3, axis='columns', fill_value=0)
@@ -209,13 +200,19 @@ class Window(Frame):
         level3.reset_index(inplace=True)
         level3.fillna(0, inplace=True)
 
-        bms_ytd = bms[
-            ['CONTRACT', 'MONTH', 'BILLINGDATE', 'INVOICE', 'INVOICETEXT', 'MAJOR', 'PROJECTNUM', 'INVOICEDATE',
-             'BILLFROMDATE', 'BILLTHRUDATE', 'AMOUNT']][
-            bms['MAJOR'].isin(['326', '323', '352', '366', '346', '374', '365'])].groupby(
-            by=['CONTRACT', 'MONTH', 'BILLINGDATE', 'INVOICE', 'INVOICETEXT', 'MAJOR', 'PROJECTNUM', 'INVOICEDATE',
-                'BILLFROMDATE', 'BILLTHRUDATE']).sum()
-        bms_ytd.reset_index(inplace=True)
+        fiw0 = fiw[['CUSTOMER', 'CONTRACT', 'AMOUNT']].groupby(by=['CUSTOMER', 'CONTRACT']).sum()
+        fiw0['FIW AMOUNT'] = fiw0['AMOUNT']
+        bms0 = bms[['CUSTOMER', 'CONTRACT', 'AMOUNT']].groupby(by=['CUSTOMER', 'CONTRACT']).sum()
+        bms0['BMS AMOUNT'] = bms0['AMOUNT']
+
+        ytd_delta = fiw0.subtract(bms0, axis='columns', fill_value=0)
+        ytd_delta['Near_Zero'] = ytd_delta['AMOUNT'].between(-1, 1)
+        ytd_delta = ytd_delta[ytd_delta['Near_Zero'] == False]
+        ytd_delta.drop(columns='Near_Zero', inplace=True)
+        ytd_delta.reset_index(inplace=True)
+        ytd_delta.rename(columns={'AMOUNT': 'DELTA'}, inplace=True)
+        ytd_delta['BMS AMOUNT'] = ytd_delta['BMS AMOUNT'] * -1
+        ytd_delta.fillna(0, inplace=True)
 
     @staticmethod
     def saver():
@@ -224,14 +221,20 @@ class Window(Frame):
         savefile = savefile + '.xlsx'
         writer = pd.ExcelWriter(savefile, engine='xlsxwriter')
         fiw.to_excel(writer, sheet_name='FIW', index=False)
-        bms_ytd.to_excel(writer, sheet_name='BMS', index=False)
-        level1.to_excel(writer, sheet_name='Level1', index=False)
-        level2.to_excel(writer, sheet_name='Level2', index=False)
-        level3.to_excel(writer, sheet_name='Level3', index=False)
+        bms.to_excel(writer, sheet_name='BMS', index=False)
+        ytd_delta.to_excel(writer, sheet_name='YTD Delta', index=False)
+        level1.to_excel(writer, sheet_name='Level 1', index=False)
+        level2.to_excel(writer, sheet_name='Level 2', index=False)
+        level3.to_excel(writer, sheet_name='Level 3', index=False)
         writer.save()
+        print("Data has been saved")
 
 
+# initialize tkinter class interface
 root = Tk()
-root.geometry("300x200")
+# defines the size of the frame
+root.geometry("240x160")
+# fills the window frame with buttons
 app = Window(root)
+# root (button functions) are looped; the window closes only explicitly
 root.mainloop()
