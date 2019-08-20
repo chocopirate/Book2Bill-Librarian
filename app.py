@@ -14,22 +14,22 @@ class Window(Frame):
 
     def init_window(self):
 
-        self.master.title("Librarian GUI")
+        self.master.title('Librarian GUI')
         self.pack(fill=BOTH, expand=1)
 
-        button_fiw_sql = Button(self, text="Load FIW SQL", width=16, command=self.open_fiw_sql)
+        button_fiw_sql = Button(self, text='Load FIW SQL', width=16, command=self.open_fiw_sql)
         button_fiw_sql.pack(fill=X)
-        button_bms_sql = Button(self, text="Load BMS SQL", width=16, command=self.open_bms_sql)
+        button_bms_sql = Button(self, text='Load BMS SQL', width=16, command=self.open_bms_sql)
         button_bms_sql.pack(fill=X)
-        button_customers = Button(self, text="Load customer data", width=16, command=self.load_customers)
+        button_customers = Button(self, text='Load customer data', width=16, command=self.load_customers)
         button_customers.pack(fill=X)
-        button_retrieve_fiw = Button(self, text="Retrieve FIW data", width=16, command=self.retrieve_fiw)
+        button_retrieve_fiw = Button(self, text='Retrieve FIW data', width=16, command=self.retrieve_fiw)
         button_retrieve_fiw.pack(fill=X)
-        button_run_bms = Button(self, text="Retrieve BMS data", width=16, command=self.retrieve_bms)
+        button_run_bms = Button(self, text='Retrieve BMS data', width=16, command=self.retrieve_bms)
         button_run_bms.pack(fill=X)
-        button_compare = Button(self, text="Compare data", width=16, command=self.compare_data)
+        button_compare = Button(self, text='Compare data', width=16, command=self.compare_data)
         button_compare.pack(fill=X)
-        button_save = Button(self, text="Save data", width=16, command=self.saver)
+        button_save = Button(self, text='Save data', width=16, command=self.saver)
         button_save.pack(fill=X)
 
         window_menu = Menu(self.master)
@@ -59,7 +59,7 @@ class Window(Frame):
     @staticmethod
     def load_customers():
         global customers
-        file = filedialog.askopenfilename(parent=root, title="Load an excel file with customer mapping")
+        file = filedialog.askopenfilename(parent=root, title='Load an excel file with customer mapping')
         if file is not None:
             customers = pd.read_excel(file, sheet_name='Customers', converters={'MAJOR': str})
             return customers
@@ -69,30 +69,30 @@ class Window(Frame):
         global fiw
         while True:
             try:
-                driver = "IBM DB2 ODBC DRIVER"
-                database = "EUHADBM0"
-                hostname = "MEUHC.s390.emea.ibm.com"
-                port = "3210"
-                protocol = "TCPIP"
-                security = "SSL"
-                keydb = r"C:\ProgramData\IBM\DB2\DB2COPY1\DB2\ibmca.kdb"
-                keysth = r"C:\ProgramData\IBM\DB2\DB2COPY1\DB2\ibmca.sth"
-                uid = input("Enter your FIW-LR user ID: ").strip()
-                pwd = input("Enter your password: ").strip()
+                driver = 'IBM DB2 ODBC DRIVER'
+                database = 'EUHADBM0'
+                hostname = 'MEUHC.s390.emea.ibm.com'
+                port = '3210'
+                protocol = 'TCPIP'
+                security = 'SSL'
+                keydb = r'C:\ProgramData\IBM\DB2\DB2COPY1\DB2\ibmca.kdb'
+                keysth = r'C:\ProgramData\IBM\DB2\DB2COPY1\DB2\ibmca.sth'
+                uid = input('Enter your FIW-LR user ID: ').strip()
+                pwd = input('Enter your password: ').strip()
 
                 dsn_fiw = (
-                    f"DRIVER={driver};"
-                    f"DATABASE={database};"
-                    f"HOSTNAME={hostname};"
-                    f"PORT={port};"
-                    f"PROTOCOL={protocol};"
-                    f"UID={uid};"
-                    f"PWD={pwd};"
-                    f"SECURITY={security};"
-                    f"SSL_keystoredb={keydb};"
-                    f"SSL_keystash={keysth};")
+                    f'DRIVER={driver};'
+                    f'DATABASE={database};'
+                    f'HOSTNAME={hostname};'
+                    f'PORT={port};'
+                    f'PROTOCOL={protocol};'
+                    f'UID={uid};'
+                    f'PWD={pwd};'
+                    f'SECURITY={security};'
+                    f'SSL_keystoredb={keydb};'
+                    f'SSL_keystash={keysth};')
 
-                conn_engine_fiw = ibm_db.connect(dsn_fiw, "", "")
+                conn_engine_fiw = ibm_db.connect(dsn_fiw, '', '')
                 conn_fiw = ibm_db_dbi.Connection(conn_engine_fiw)
                 # add fiw_sql is None check, if None then call function
 
@@ -111,30 +111,30 @@ class Window(Frame):
         global bms
         while True:
             try:
-                driver = "IBM DB2 ODBC DRIVER"
-                database = "MWNCDSNB"
-                hostname = "bldbmsa.boulder.ibm.com"
-                port = "5508"
-                protocol = "TCPIP"
-                security = "SSL"
-                keydb = r"C:\ProgramData\IBM\DB2\DB2COPY1\DB2\ibmca.kdb"
-                keysth = r"C:\ProgramData\IBM\DB2\DB2COPY1\DB2\ibmca.sth"
-                uid = input("Enter your BMSIW user ID: ").strip()
-                pwd = input("Enter your password: ").strip()
+                driver = 'IBM DB2 ODBC DRIVER'
+                database = 'MWNCDSNB'
+                hostname = 'bldbmsa.boulder.ibm.com'
+                port = '5508'
+                protocol = 'TCPIP'
+                security = 'SSL'
+                keydb = r'C:\ProgramData\IBM\DB2\DB2COPY1\DB2\ibmca.kdb'
+                keysth = r'C:\ProgramData\IBM\DB2\DB2COPY1\DB2\ibmca.sth'
+                uid = input('Enter your BMSIW user ID: ').strip()
+                pwd = input('Enter your password: ').strip()
 
                 dsn_bms = (
-                    f"DRIVER={driver};"
-                    f"DATABASE={database};"
-                    f"HOSTNAME={hostname};"
-                    f"PORT={port};"
-                    f"PROTOCOL={protocol};"
-                    f"UID={uid};"
-                    f"PWD={pwd};"
-                    f"SECURITY={security};"
-                    f"SSL_keystoredb={keydb};"
-                    f"SSL_keystash={keysth};")
+                    f'DRIVER={driver};'
+                    f'DATABASE={database};'
+                    f'HOSTNAME={hostname};'
+                    f'PORT={port};'
+                    f'PROTOCOL={protocol};'
+                    f'UID={uid};'
+                    f'PWD={pwd};'
+                    f'SECURITY={security};'
+                    f'SSL_keystoredb={keydb};'
+                    f'SSL_keystash={keysth};')
 
-                conn_engine_bms = ibm_db.connect(dsn_bms, "", "")
+                conn_engine_bms = ibm_db.connect(dsn_bms, '', '')
                 conn_bms = ibm_db_dbi.Connection(conn_engine_bms)
                 # add fiw_sql is None check, if None then call function
             except Exception:
@@ -226,8 +226,9 @@ class Window(Frame):
         level1.to_excel(writer, sheet_name='Level 1', index=False)
         level2.to_excel(writer, sheet_name='Level 2', index=False)
         level3.to_excel(writer, sheet_name='Level 3', index=False)
+        print('Saving data, please wait...')
         writer.save()
-        print("Data has been saved")
+        print('Data has been saved')
 
 
 # initialize tkinter class interface
