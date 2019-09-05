@@ -1,11 +1,14 @@
 import pandas as pd
+import numpy as np
 import ibm_db
 import ibm_db_dbi
 from tkinter import *
 from tkinter import filedialog
+from tkinter import messagebox
 
+pd.options.display.float_format = '${:,.2f}'.format
 
-class Window(Frame):
+class Application(Frame):
 
     def __init__(self, master=None):
         Frame.__init__(self, master)
@@ -43,109 +46,120 @@ class Window(Frame):
     @staticmethod
     def open_fiw_sql():
         global fiw_sql
-        file = filedialog.askopenfile(parent=root, mode='r', title='Choose a text file with FIW SQL')
+        file = filedialog.askopenfile(parent=root, mode='r', title='Choose a text file with SQL for FIW')
         if file is not None:
             fiw_sql = file.read()
+            messagebox.showinfo(title='Status message', message='SQL loaded successfully.')
             return fiw_sql
 
     @staticmethod
     def open_bms_sql():
         global bms_sql
-        file = filedialog.askopenfile(parent=root, mode='r', title='Choose a text file with BMS SQL')
+        file = filedialog.askopenfile(parent=root, mode='r', title='Choose a text file with SQL for BMS')
         if file is not None:
             bms_sql = file.read()
+            messagebox.showinfo(title='Status message', message='SQL loaded successfully.')
             return bms_sql
 
     @staticmethod
     def load_customers():
         global customers
-        file = filedialog.askopenfilename(parent=root, title='Load an excel file with customer mapping')
+        file = filedialog.askopenfilename(parent=root,  title='Select a spreadsheet containing customer mapping')
         if file is not None:
-            customers = pd.read_excel(file, sheet_name='Customers', converters={'MAJOR': str})
+            customers = pd.read_excel(r'{}'.format(file), sheet_name='Customers', encoding='utf-8')
+            messagebox.showinfo(title='Status message', message='Mapping data loaded successfully.')
             return customers
 
     @staticmethod
     def retrieve_fiw():
         global fiw
-        while True:
-            try:
-                driver = 'IBM DB2 ODBC DRIVER'
-                database = 'EUHADBM0'
-                hostname = 'MEUHC.s390.emea.ibm.com'
-                port = '3210'
-                protocol = 'TCPIP'
-                security = 'SSL'
-                keydb = r'C:\ProgramData\IBM\DB2\DB2COPY1\DB2\ibmca.kdb'
-                keysth = r'C:\ProgramData\IBM\DB2\DB2COPY1\DB2\ibmca.sth'
-                uid = input('Enter your FIW-LR user ID: ').strip()
-                pwd = input('Enter your password: ').strip()
+        if 'fiw_sql' in globals() or 'fiw_sql' in locals():
+            while True:
+                try:
+                    driver = 'IBM DB2 ODBC DRIVER'
+                    database = 'EUHADBM0'
+                    hostname = 'MEUHC.s390.emea.ibm.com'
+                    port = '3210'
+                    protocol = 'TCPIP'
+                    security = 'SSL'
+                    keydb = r'C:\ProgramData\IBM\DB2\DB2COPY1\DB2\ibmca.kdb'
+                    keysth = r'C:\ProgramData\IBM\DB2\DB2COPY1\DB2\ibmca.sth'
+                    uid = input('Enter your FIW-LR user ID: ').strip()
+                    pwd = input('Enter your password: ').strip()
 
-                dsn_fiw = (
-                    f'DRIVER={driver};'
-                    f'DATABASE={database};'
-                    f'HOSTNAME={hostname};'
-                    f'PORT={port};'
-                    f'PROTOCOL={protocol};'
-                    f'UID={uid};'
-                    f'PWD={pwd};'
-                    f'SECURITY={security};'
-                    f'SSL_keystoredb={keydb};'
-                    f'SSL_keystash={keysth};')
+                    dsn_fiw = (
+                        f'DRIVER={driver};'
+                        f'DATABASE={database};'
+                        f'HOSTNAME={hostname};'
+                        f'PORT={port};'
+                        f'PROTOCOL={protocol};'
+                        f'UID={uid};'
+                        f'PWD={pwd};'
+                        f'SECURITY={security};'
+                        f'SSL_keystoredb={keydb};'
+                        f'SSL_keystash={keysth};')
 
-                conn_engine_fiw = ibm_db.connect(dsn_fiw, '', '')
-                conn_fiw = ibm_db_dbi.Connection(conn_engine_fiw)
-                # add fiw_sql is None check, if None then call function
-
-            except Exception:
-                continue
-            else:
-                print('Retrieving FIW data...')
-                fiw = pd.read_sql(fiw_sql, conn_fiw)
-                print('FIW data retrieved successfully')
-                break
-        fiw = fiw.merge(customers, how='left', on='CONTRACT')
-        return fiw
+                    conn_engine_fiw = ibm_db.connect(dsn_fiw, '', '')
+                    conn_fiw = ibm_db_dbi.Connection(conn_engine_fiw)
+                except Exception:
+                    continue
+                else:
+                    print('Retrieving FIW data...')
+                    fiw = pd.read_sql(fiw_sql, conn_fiw)
+                    print('FIW data retrieved successfully')
+                    break
+            fiw = fiw.merge(customers, how='left', on='CONTRACT')
+            return fiw
+        else:
+            messagebox.showwarning(title='SQL not loaded',
+                                   warning='SQL needs to be loaded first. Choose the file containing SQL for FIW now.')
+            Application.open_fiw_sql()
 
     @staticmethod
     def retrieve_bms():
         global bms
-        while True:
-            try:
-                driver = 'IBM DB2 ODBC DRIVER'
-                database = 'MWNCDSNB'
-                hostname = 'bldbmsa.boulder.ibm.com'
-                port = '5508'
-                protocol = 'TCPIP'
-                security = 'SSL'
-                keydb = r'C:\ProgramData\IBM\DB2\DB2COPY1\DB2\ibmca.kdb'
-                keysth = r'C:\ProgramData\IBM\DB2\DB2COPY1\DB2\ibmca.sth'
-                uid = input('Enter your BMSIW user ID: ').strip()
-                pwd = input('Enter your password: ').strip()
+        if bms_sql:
+            while True:
+                try:
+                    driver = 'IBM DB2 ODBC DRIVER'
+                    database = 'MWNCDSNB'
+                    hostname = 'bldbmsa.boulder.ibm.com'
+                    port = '5508'
+                    protocol = 'TCPIP'
+                    security = 'SSL'
+                    keydb = r'C:\ProgramData\IBM\DB2\DB2COPY1\DB2\ibmca.kdb'
+                    keysth = r'C:\ProgramData\IBM\DB2\DB2COPY1\DB2\ibmca.sth'
+                    uid = input('Enter your BMSIW user ID: ').strip()
+                    pwd = input('Enter your password: ').strip()
 
-                dsn_bms = (
-                    f'DRIVER={driver};'
-                    f'DATABASE={database};'
-                    f'HOSTNAME={hostname};'
-                    f'PORT={port};'
-                    f'PROTOCOL={protocol};'
-                    f'UID={uid};'
-                    f'PWD={pwd};'
-                    f'SECURITY={security};'
-                    f'SSL_keystoredb={keydb};'
-                    f'SSL_keystash={keysth};')
+                    dsn_bms = (
+                        f'DRIVER={driver};'
+                        f'DATABASE={database};'
+                        f'HOSTNAME={hostname};'
+                        f'PORT={port};'
+                        f'PROTOCOL={protocol};'
+                        f'UID={uid};'
+                        f'PWD={pwd};'
+                        f'SECURITY={security};'
+                        f'SSL_keystoredb={keydb};'
+                        f'SSL_keystash={keysth};')
 
-                conn_engine_bms = ibm_db.connect(dsn_bms, '', '')
-                conn_bms = ibm_db_dbi.Connection(conn_engine_bms)
-                # add fiw_sql is None check, if None then call function
-            except Exception:
-                continue
-            else:
-                print('Retrieving BMS data...')
-                bms = pd.read_sql(bms_sql, conn_bms)
-                print('BMS data retrieved successfully')
-                break
-        bms = bms.merge(customers, how='left', on='CONTRACT')
-        return bms
+                    conn_engine_bms = ibm_db.connect(dsn_bms, '', '')
+                    conn_bms = ibm_db_dbi.Connection(conn_engine_bms)
+
+                except Exception:
+                    continue
+
+                else:
+                    print('Retrieving BMS data...')
+                    bms = pd.read_sql(bms_sql, conn_bms)
+                    print('BMS data retrieved successfully')
+                    break
+
+            bms = bms.merge(customers, how='left', on='CONTRACT')
+            return bms
+        else:
+            Application.open_bms_sql()
 
     @staticmethod
     def compare_data():
@@ -236,6 +250,6 @@ root = Tk()
 # defines the size of the frame
 root.geometry("240x160")
 # fills the window frame with buttons
-app = Window(root)
+app = Application(root)
 # root (button functions) are looped; the window closes only explicitly
-root.mainloop()
+app.mainloop()
