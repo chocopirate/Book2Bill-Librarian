@@ -184,9 +184,6 @@ class Window(Frame):
     def compare_data(fiw_df=None, bms_df=None):
         global ytd, level1, level2, level3
         comparison = fiw_df.subtract(bms_df, axis='columns', fill_value=0)
-        comparison['Near_Zero'] = comparison['AMOUNT'].between(-1, 1)
-        comparison = comparison[comparison['Near_Zero'] == False]
-        comparison.drop(columns='Near_Zero', inplace=True)
         comparison.reset_index(inplace=True)
         comparison.rename(columns={'AMOUNT': 'DELTA'}, inplace=True)
         comparison['BMS AMOUNT'] = comparison['BMS AMOUNT'] * -1
