@@ -13,6 +13,8 @@
       <w>projectnum</w>
       <w>savefile</w>
       <w>tcpip</w>
+      <w>xlsx</w>
+      <w>xlsxwriter</w>
     </words>
   </dictionary>
 </component>
