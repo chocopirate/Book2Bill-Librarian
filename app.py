@@ -5,15 +5,39 @@ from tkinter import Tk, filedialog, messagebox, Frame, Button, Label, Entry, Str
 
 options.display.float_format = '${:,.2f}'.format
 
-cols0 = ['CUSTOMER', 'CONTRACT', 'AMOUNT', 'USD', 'VOUCHER']
-cols1 = ['CUSTOMER', 'CONTRACT', 'MONTH', 'AMOUNT', 'USD', 'VOUCHER']
-cols2 = ['CUSTOMER', 'CONTRACT', 'MONTH', 'BMDIV', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'AMOUNT', 'USD', 'VOUCHER']
-cust_cols = ['CUSTOMER', 'CONTRACT', 'MONTH', 'DIV', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'BMS LOCAL', 'FIW LOCAL',
-             'DELTA LOCAL', 'VOUCHER', 'BMS USD', 'FIW USD', 'DELTA USD']
+cols0 = ['CUSTOMER', 'CONTRACT', 'BILLING LOCAL', 'BILLING USD', 'PERIODISATION LOCAL', 'PERIODISATION USD',
+         'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
+cols1 = ['CUSTOMER', 'CONTRACT', 'MONTH', 'BILLING LOCAL', 'BILLING USD', 'PERIODISATION LOCAL',
+         'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
+cols2 = ['CUSTOMER', 'CONTRACT', 'MONTH', 'BMDIV', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'BILLING LOCAL', 'BILLING USD',
+         'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
+cust_cols = ['CUSTOMER', 'CONTRACT', 'MONTH', 'DIV', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'FIW BILLING LOCAL',
+             'BMS BILLING LOCAL', 'BILLING DELTA LOCAL', 'FIW BILLING USD', 'BMS BILLING USD', 'BILLING DELTA USD',
+             'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
 group0 = ['CUSTOMER', 'CONTRACT']
 group1 = ['CUSTOMER', 'CONTRACT', 'MONTH']
 group2 = ['CUSTOMER', 'CONTRACT', 'MONTH', 'BMDIV', 'MAJOR', 'INVOICE', 'PROJECTNUM']
 cust_group = ['CUSTOMER', 'CONTRACT', 'MONTH', 'DIV', 'MAJOR', 'INVOICE', 'PROJECTNUM']
+ytd_view = ['CUSTOMER', 'CONTRACT', 'FIW BILLING LOCAL', 'BMS BILLING LOCAL', 'BILLING DELTA LOCAL', 'FIW BILLING USD',
+            'BMS BILLING USD', 'BILLING DELTA USD', 'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL',
+            'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
+level1_view = ['CUSTOMER', 'CONTRACT', 'MONTH', 'FIW BILLING LOCAL', 'BMS BILLING LOCAL', 'BILLING DELTA LOCAL',
+               'FIW BILLING USD', 'BMS BILLING USD', 'BILLING DELTA USD', 'PERIODISATION LOCAL', 'PERIODISATION USD',
+               'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
+level2_view = ['CUSTOMER', 'CONTRACT', 'MONTH', 'BMDIV', 'DIV', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'FIW BILLING LOCAL',
+               'BMS BILLING LOCAL', 'BILLING DELTA LOCAL', 'FIW BILLING USD', 'BMS BILLING USD', 'BILLING DELTA USD',
+               'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
+fiw_view = ['WW_SECTOR', 'WW_SECTOR_NAME', 'CUSTNAME', 'CONTRACT', 'PROJECTNUM', 'CUSTNUM', 'YEAR', 'MONTH', 'LC',
+            'BMDIV', 'MAJOR', 'MINOR', 'DESCR1', 'DESCR2', 'LDIV', 'COUNTRY', 'VOUCHER_GRP_NBR', 'VOUCHER_NBR',
+            'PRODID',
+            'RUN_DATE', 'FID', 'INVOICE', 'SRC', 'EVENT_CODE', 'QUARTER', 'CUSTOMER', 'CURRENCY', 'EXCH RATE',
+            'BILLING LOCAL', 'BILLING USD', 'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD',
+            'OTHER LOCAL', 'OTHER USD']
+bms_view = ['CONTRACT', 'PROJECTNUM', 'CUSTOMERNUMBER', 'CUSTOMERCONTROL', 'YEAR', 'MONTH', 'MAJOR', 'BMDIV',
+            'DESCRIPTION', 'COUNTRY', 'BILLINGDATE', 'INVOICETEXT', 'INVOICESTATUS', 'INVOICENUMBER', 'SRC_TABLE',
+            'INVOICEDATE', 'QRY_RUN_DT', 'BILLTHRUDATE', 'BILLFROMDATE', 'BILLINGMONTH', 'INVOICEDAMOUNT', 'CHARGECODE',
+            'BUSINESSTYPE', 'CURRENCY', 'INVOICE', 'CUSTOMER', 'EXCH RATE', 'BILLING LOCAL', 'BILLING USD',
+            'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
 
 
 # noinspection PyBroadException
@@ -98,7 +122,7 @@ class Application(Frame):
                 return self.curr_sql
             messagebox.showerror(title='Wrong format', message='File format not supported, use .txt format.')
         except Exception:
-            pass
+            messagebox.showerror(title='Wrong format', message='File format not supported, use .txt format.')
 
     def open_fiw_sql(self):
         """Reads lines from text file to parse SQL"""
@@ -110,7 +134,7 @@ class Application(Frame):
                 return self.fiw_sql
             messagebox.showerror(title='Wrong format', message='File format not supported, use .txt format.')
         except Exception:
-            pass
+            messagebox.showerror(title='Wrong format', message='File format not supported, use .txt format.')
 
     def open_bms_sql(self):
         """Reads lines from text file to parse SQL"""
@@ -125,7 +149,7 @@ class Application(Frame):
 
     def retrieve_fiw(self):
         """Retrieves data from FIW server using provided credentials and SQL"""
-        if self.fiw_sql is not None:
+        if self.fiw_sql is not None and self.customers is not None:
             try:
                 driver = 'IBM DB2 ODBC DRIVER'
                 database = 'EUHADBM0'
@@ -151,22 +175,30 @@ class Application(Frame):
                 conn_engine_fiw = ibm_db.connect(dsn_fiw, '', '')
                 conn_fiw = ibm_db_dbi.Connection(conn_engine_fiw)
             except Exception:
-                messagebox.showerror(title='Authentication failed', message='Invalid user ID or password!')
+                messagebox.showerror(title='Authentication failed', message='Invalid credentials!')
             else:
                 self.busy()
                 self.fiw = read_sql(self.fiw_sql, conn_fiw)
                 self.fiw = self.fiw.merge(self.customers, how='left', on='CONTRACT')
                 self.not_busy()
-                messagebox.showinfo(title='Status message', message='FIW data retrieved successfully.')
+                if self.fiw.shape[0] > 0:
+                    messagebox.showinfo(title='Status message', message='FIW data retrieved successfully.')
                 return self.fiw
 
         else:
-            messagebox.showwarning(title='SQL not loaded', message='A window will be opened now for selection')
-            self.open_fiw_sql()
+            if self.fiw_sql is None and self.customers is None:
+                messagebox.showwarning(title='Status message',
+                                       message='Proceed by loading FIW SQL and customer mapping')
+            elif self.customers is None:
+                messagebox.showwarning(title='Status message',
+                                       message='Proceed by loading customer mapping')
+            else:
+                messagebox.showwarning(title='Status message',
+                                       message='Proceed by loading FIW SQL')
 
     def retrieve_bms(self):
         """Retrieves data from BMS server using provided credentials and SQL"""
-        if self.bms_sql and self.customers is not None:
+        if self.bms_sql is not None and self.curr_sql is not None and self.customers is not None:
             try:
                 driver = 'IBM DB2 ODBC DRIVER'
                 database = 'MWNCDSNB'
@@ -192,7 +224,7 @@ class Application(Frame):
                 conn_engine_bms = ibm_db.connect(dsn_bms, '', '')
                 conn_bms = ibm_db_dbi.Connection(conn_engine_bms)
             except Exception:
-                messagebox.showerror(title='Authentication failed', message='Invalid user ID or password!')
+                messagebox.showerror(title='Authentication failed', message='Invalid credentials!')
             else:
                 self.busy()
                 self.bms = read_sql(self.bms_sql, conn_bms)
@@ -201,55 +233,81 @@ class Application(Frame):
                 self.not_busy()
                 messagebox.showinfo(title='Status message', message='BMS data retrieved successfully.')
                 return self.bms, self.currency
-            # ######################## INCLUDE VALIDATION IF OUTPUT CONTAINS INV_TYPE FIELD ##############
+            # ############## REMOVED ##############
             # bms.loc[bms['INVOICENUMBER'].str.contains('X'), 'INV_TYPE'] = 'INT'
             # bms.loc[bms['INVOICENUMBER'].str.contains('MAN'), 'INV_TYPE'] = 'MAN'
             # bms.loc[bms['INVOICENUMBER'].str.contains('X|MAN') == False, 'INV_TYPE'] = 'EXT'
 
         else:
-            messagebox.showwarning(title='SQL or customer datanot loaded',
-                                   message='Proceed by loading customer mapping and SQLs')
-            # self.open_bms_sql()
+            if self.bms_sql is None and self.curr_sql is None and self.customers is None:
+                messagebox.showwarning(title='Status message',
+                                       message='Proceed by loading BMS SQL, currency SQL and customer mapping')
+            elif self.bms_sql is None and self.curr_sql is None:
+                messagebox.showwarning(title='Status message',
+                                       message='Proceed by loading BMS SQL and currency SQL')
+            elif self.customers is None and self.curr_sql is None:
+                messagebox.showwarning(title='Status message',
+                                       message='Proceed by loading customer mapping and currency SQL')
+            elif self.customers is None:
+                messagebox.showwarning(title='Status message',
+                                       message='Proceed by loading customer mapping')
+            elif self.curr_sql is None:
+                messagebox.showwarning(title='Status message',
+                                       message='Proceed by loading currency SQL')
+            else:
+                messagebox.showwarning(title='Status message',
+                                       message='Proceed by loading BMS SQL')
 
     def compare_data(self):
         """Compares data per defined view to create custom levels of detail"""
         if self.fiw is not None and self.bms is not None and self.currency is not None:
             # merging FIW and BMS tables with currency table exchange rates
-            self.fiw = self.fiw.merge(self.currency, how='left', on=['MONTH', 'CURRENCY'])
-            self.bms = self.bms.merge(self.currency, how='left', on=['MONTH', 'CURRENCY'])
-            self.fiw['USD'] = self.fiw['AMOUNT'] * self.fiw['EXCH RATE']
-            self.bms['USD'] = self.bms['AMOUNT'] * self.bms['EXCH RATE']
+            self.fiw = self.fiw.merge(self.currency, how='left', on=['YEAR', 'MONTH', 'CURRENCY'])
+            self.bms = self.bms.merge(self.currency, how='left', on=['YEAR', 'MONTH', 'CURRENCY'])
+            self.fiw['BILLING USD'] = self.fiw['BILLING LOCAL'] * self.fiw['EXCH RATE']
+            self.bms['BILLING USD'] = self.bms['BILLING LOCAL'] * self.bms['EXCH RATE']
+            # FIW only columns
+            self.fiw['PERIODISATION USD'] = self.fiw['PERIODISATION LOCAL'] * self.fiw['EXCH RATE']
+            self.fiw['ACCRUAL USD'] = self.fiw['ACCRUAL LOCAL'] * self.fiw['EXCH RATE']
+            self.fiw['OTHER USD'] = self.fiw['OTHER LOCAL'] * self.fiw['EXCH RATE']
 
             # extracting brand information from BMS data and applying that mapping to FIW data
-            self.bms['VOUCHER'] = 0
+            self.bms['ACCRUAL LOCAL'] = 0
+            self.bms['ACCRUAL USD'] = 0
+            self.bms['PERIODISATION LOCAL'] = 0
+            self.bms['PERIODISATION USD'] = 0
+            self.bms['OTHER LOCAL'] = 0
+            self.bms['OTHER USD'] = 0
             div_extract = self.bms[['CONTRACT', 'MAJOR', 'BMDIV']]
             div_extract = div_extract.rename(columns={'BMDIV': 'DIV'})
             div_extract.drop_duplicates(inplace=True)
 
             # creating data for Level 1 view
             fiw1 = self.fiw[cols1].groupby(by=group1).sum()
-            fiw1['FIW LOCAL'] = fiw1['AMOUNT']
-            fiw1['FIW USD'] = fiw1['USD']
+            fiw1['FIW BILLING LOCAL'] = fiw1['BILLING LOCAL']
+            fiw1['FIW BILLING USD'] = fiw1['BILLING USD']
             bms1 = self.bms[cols1].groupby(by=group1).sum()
-            bms1['BMS LOCAL'] = bms1['AMOUNT']
-            bms1['BMS USD'] = bms1['USD']
+            bms1['BMS BILLING LOCAL'] = bms1['BILLING LOCAL']
+            bms1['BMS BILLING USD'] = bms1['BILLING USD']
             # Level 1 numeric fields for comparison
             self.level1 = fiw1.subtract(bms1, axis='columns', fill_value=0)
             self.level1.reset_index(inplace=True)
-            self.level1.rename(columns={'AMOUNT': 'DELTA LOCAL'}, inplace=True)
-            self.level1['BMS LOCAL'] = self.level1['BMS LOCAL'] * -1
-            self.level1.rename(columns={'USD': 'DELTA USD'}, inplace=True)
-            self.level1['BMS USD'] = self.level1['BMS USD'] * -1
+            self.level1.rename(columns={'BILLING LOCAL': 'BILLING DELTA LOCAL'}, inplace=True)
+            self.level1['BMS BILLING LOCAL'] = self.level1['BMS BILLING LOCAL'] * -1
+            self.level1.rename(columns={'BILLING USD': 'BILLING DELTA USD'}, inplace=True)
+            self.level1['BMS BILLING USD'] = self.level1['BMS BILLING USD'] * -1
             self.level1.fillna(0, inplace=True)
+            self.level1 = self.level1[level1_view]
 
             # creating data for Level 2 view
             fiw2 = self.fiw[cols2].groupby(by=group2).sum()
-            fiw2['FIW LOCAL'] = fiw2['AMOUNT']
-            fiw2['FIW USD'] = fiw2['USD']
+            fiw2['FIW BILLING LOCAL'] = fiw2['BILLING LOCAL']
+            fiw2['FIW BILLING USD'] = fiw2['BILLING USD']
             bms2 = self.bms[cols2].groupby(by=group2).sum()
-            bms2['BMS LOCAL'] = bms2['AMOUNT']
-            bms2['BMS USD'] = bms2['USD']
+            bms2['BMS BILLING LOCAL'] = bms2['BILLING LOCAL']
+            bms2['BMS BILLING USD'] = bms2['BILLING USD']
 
+            # ####### REMOVED #######
             # use extract of INV_TYP from BMS data
             # merge it to level 3 comparison
             # invoices found in FIW, will be matched to INV_type too
@@ -258,48 +316,57 @@ class Application(Frame):
             # Level 2 numeric fields for comparison
             self.level2 = fiw2.subtract(bms2, axis='columns', fill_value=0)
             self.level2.reset_index(inplace=True)
-            self.level2.rename(columns={'AMOUNT': 'DELTA LOCAL'}, inplace=True)
-            self.level2['BMS LOCAL'] = self.level2['BMS LOCAL'] * -1
-            self.level2.rename(columns={'USD': 'DELTA USD'}, inplace=True)
-            self.level2['BMS USD'] = self.level2['BMS USD'] * -1
+            self.level2.rename(columns={'BILLING LOCAL': 'BILLING DELTA LOCAL'}, inplace=True)
+            self.level2['BMS BILLING LOCAL'] = self.level2['BMS BILLING LOCAL'] * -1
+            self.level2.rename(columns={'BILLING USD': 'BILLING DELTA USD'}, inplace=True)
+            self.level2['BMS BILLING USD'] = self.level2['BMS BILLING USD'] * -1
             self.level2.fillna(0, inplace=True)
             self.level2 = self.level2.merge(div_extract, how='left', on=['CONTRACT', 'MAJOR'])
             self.level2.loc[self.level2['DIV'].isnull(), 'DIV'] = self.level2['BMDIV']
             # level3 = level3.merge(inv_typ, how='left', on=['INVOICE', ''])
+            # reorder
+            self.level2 = self.level2[level2_view]
 
             # creating data for YTD view
             fiw0 = self.fiw[cols0].groupby(by=group0).sum()
-            fiw0['FIW LOCAL'] = fiw0['AMOUNT']
-            fiw0['FIW USD'] = fiw0['USD']
+            fiw0['FIW BILLING LOCAL'] = fiw0['BILLING LOCAL']
+            fiw0['FIW BILLING USD'] = fiw0['BILLING USD']
             bms0 = self.bms[cols0].groupby(by=group0).sum()
-            bms0['BMS LOCAL'] = bms0['AMOUNT']
-            bms0['BMS USD'] = bms0['USD']
+            bms0['BMS BILLING LOCAL'] = bms0['BILLING LOCAL']
+            bms0['BMS BILLING USD'] = bms0['BILLING USD']
 
             # YTD delta numeric fields for comparison
             self.ytd_delta = fiw0.subtract(bms0, axis='columns', fill_value=0)
             self.ytd_delta.reset_index(inplace=True)
-            self.ytd_delta.rename(columns={'AMOUNT': 'DELTA LOCAL'}, inplace=True)
-            self.ytd_delta['BMS LOCAL'] = self.ytd_delta['BMS LOCAL'] * -1
-            self.ytd_delta.rename(columns={'USD': 'DELTA USD'}, inplace=True)
-            self.ytd_delta['BMS USD'] = self.ytd_delta['BMS USD'] * -1
+            self.ytd_delta.rename(columns={'BILLING LOCAL': 'BILLING DELTA LOCAL'}, inplace=True)
+            self.ytd_delta['BMS BILLING LOCAL'] = self.ytd_delta['BMS BILLING LOCAL'] * -1
+            self.ytd_delta.rename(columns={'BILLING USD': 'BILLING DELTA USD'}, inplace=True)
+            self.ytd_delta['BMS BILLING USD'] = self.ytd_delta['BMS BILLING USD'] * -1
             self.ytd_delta.fillna(0, inplace=True)
+            # reorder
+            self.ytd_delta = self.ytd_delta[ytd_view]
 
             # creating customer view from Level 2 data
             self.customers_df = fiw2.subtract(bms2, axis='columns', fill_value=0)
             self.customers_df.reset_index(inplace=True)
-            self.customers_df.rename(columns={'AMOUNT': 'DELTA LOCAL'}, inplace=True)
-            self.customers_df['BMS LOCAL'] = self.customers_df['BMS LOCAL'] * -1
-            self.customers_df.rename(columns={'USD': 'DELTA USD'}, inplace=True)
-            self.customers_df['BMS USD'] = self.customers_df['BMS USD'] * -1
+            self.customers_df.rename(columns={'BILLING LOCAL': 'BILLING DELTA LOCAL'}, inplace=True)
+            self.customers_df['BMS BILLING LOCAL'] = self.customers_df['BMS BILLING LOCAL'] * -1
+            self.customers_df.rename(columns={'BILLING USD': 'BILLING DELTA USD'}, inplace=True)
+            self.customers_df['BMS BILLING USD'] = self.customers_df['BMS BILLING USD'] * -1
             self.customers_df.fillna(0, inplace=True)
             self.customers_df = self.customers_df.merge(div_extract, how='left', on=['CONTRACT', 'MAJOR'])
+            self.customers_df['Comment'] = ''
+            # reorder
+            self.fiw = self.fiw[fiw_view]
+            self.bms = self.bms[bms_view]
+
             messagebox.showinfo(title='Status message', message='Data compared successfully')
         else:
             messagebox.showerror(title='Missing data', message='FIW or BMS data was not retrieved.')
             if self.fiw_sql is not None:
                 messagebox.showinfo(title='Query', message='FIW data will be retrieved')
                 self.retrieve_fiw()
-            elif self.bms_sql is not None:
+            if self.bms_sql is not None and self.curr_sql is not None:
                 messagebox.showinfo(title='Query', message='BMS data will be retrieved')
                 self.retrieve_bms()
 
@@ -315,29 +382,64 @@ class Application(Frame):
             else:
                 pass
 
-            writer = ExcelWriter(save_location, engine='xlsxwriter')
-            self.fiw.to_excel(writer, sheet_name='FIW', index=False)
-            self.bms.to_excel(writer, sheet_name='BMS', index=False)
-            self.ytd_delta.to_excel(writer, sheet_name='YTD Overview', index=False)
-            self.level1.to_excel(writer, sheet_name='Level 1', index=False)
-            self.level2.to_excel(writer, sheet_name='Level 2', index=False)
+            def autofit_columns(df):
+                header_width = [len(col) for col in list(df.columns)]
+                value_width = []
+                for col in list(df.columns):
+                    try:
+                        value_width.append(int(df[col].astype(str).map(len).max()))
+                    except Exception:
+                        value_width.append(18)
+                width_comp = zip(header_width, value_width)
+                max_width = []
+                for h, v in width_comp:
+                    if h > v:
+                        max_width.append(h + 3)
+                    elif h < v:
+                        max_width.append(v + 2)
+                    elif h == v:
+                        max_width.append(h + 2)
+                return max_width
+
+            sheets = {'FIW': [self.fiw, 'AB:AJ'], 'BMS': [self.bms, 'AA:AI'], 'YTD Overview': [self.ytd_delta, 'C:N'],
+                      'Level 1': [self.level1, 'D:O'], 'Level 2': [self.level2, 'I:T']}
 
             self.busy()
+            writer_main = ExcelWriter(save_location, engine='xlsxwriter')
+            for sheet_key, sheet_val in sheets.items():
+                workbook = writer_main.book
+                sheet_val[0].to_excel(writer_main, sheet_name=f'{sheet_key}', index=False)
+                worksheet = writer_main.sheets[f'{sheet_key}']
+                format1 = workbook.add_format({'num_format': '#,##0.00'})
+                worksheet.set_column(sheet_val[1], None, format1)
+                w = autofit_columns(sheet_val[0])
+                for n, w in enumerate(w):
+                    worksheet.set_column(n, n, w)
+            writer_main.save()
+
             for customer in set(self.customers_df['CUSTOMER']):
+                writer_customer = ExcelWriter(save_location[0:int(save_location.rfind('/') + 1)] + f'{customer}.xlsx',
+                                              engine='xlsxwriter')
                 individual_view = self.customers_df[cust_cols][self.customers_df['CUSTOMER'] == f'{str(customer)}']
                 individual_view = individual_view.groupby(by=cust_group).sum()
                 individual_view.reset_index(inplace=True)
-                # print(customer)
-                # print(save_location[0:int(save_location.rfind('/') + 1)] + f'{customer}' + '.xlsx')
-                individual_view.to_excel(save_location[0:int(save_location.rfind('/') + 1)] + f'{customer}.xlsx',
-                                         sheet_name=f'{customer}', index=False)
+                workbook = writer_customer.book
+                individual_view.to_excel(writer_customer, sheet_name=f'{customer}', index=False)
+                worksheet = writer_customer.sheets[f'{customer}']
+                format1 = workbook.add_format({'num_format': '#,##0.00'})
+                worksheet.set_column('H:S', None, format1)
+                w = autofit_columns(individual_view)
 
-            writer.save()
+                for n, w in enumerate(w):
+                    worksheet.set_column(n, n, w)
+                writer_customer.save()
+                writer_customer.close()
+
             self.not_busy()
-            messagebox.showinfo(title='Status message', message='Data has been saved.')
 
+            messagebox.showinfo(title='Status message', message='Data has been saved.')
         else:
-            messagebox.showerror(title='Status message', message='Necessary data was not been retrieved')
+            messagebox.showerror(title='Status message', message='Necessary data has not been retrieved')
 
 
 if __name__ == "__main__":
