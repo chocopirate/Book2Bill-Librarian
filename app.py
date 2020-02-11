@@ -29,8 +29,7 @@ level2_view = ['CUSTOMER', 'CONTRACT', 'MONTH', 'BMDIV', 'DIV', 'MAJOR', 'INVOIC
                'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
 fiw_view = ['WW_SECTOR', 'WW_SECTOR_NAME', 'CUSTNAME', 'CONTRACT', 'PROJECTNUM', 'CUSTNUM', 'YEAR', 'MONTH', 'LC',
             'BMDIV', 'MAJOR', 'MINOR', 'DESCR1', 'DESCR2', 'LDIV', 'COUNTRY', 'VOUCHER_GRP_NBR', 'VOUCHER_NBR',
-            'PRODID',
-            'RUN_DATE', 'FID', 'INVOICE', 'SRC', 'EVENT_CODE', 'QUARTER', 'CUSTOMER', 'CURRENCY', 'EXCH RATE',
+            'PRODID', 'RUN_DATE', 'FID', 'INVOICE', 'SRC', 'EVENT_CODE', 'QUARTER', 'CUSTOMER', 'CURRENCY', 'EXCH RATE',
             'BILLING LOCAL', 'BILLING USD', 'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD',
             'OTHER LOCAL', 'OTHER USD']
 bms_view = ['CONTRACT', 'PROJECTNUM', 'CUSTOMERNUMBER', 'CUSTOMERCONTROL', 'YEAR', 'MONTH', 'MAJOR', 'BMDIV',
@@ -420,9 +419,7 @@ class Application(Frame):
             for customer in set(self.customers_df['CUSTOMER']):
                 writer_customer = ExcelWriter(save_location[0:int(save_location.rfind('/') + 1)] + f'{customer}.xlsx',
                                               engine='xlsxwriter')
-                individual_view = self.customers_df[cust_cols][self.customers_df['CUSTOMER'] == f'{str(customer)}']
-                individual_view = individual_view.groupby(by=cust_group).sum()
-                individual_view.reset_index(inplace=True)
+                individual_view = self.customers_df[cust_cols][self.customers_df['CUSTOMER'] == f'{customer}']
                 workbook = writer_customer.book
                 individual_view.to_excel(writer_customer, sheet_name=f'{customer}', index=False)
                 worksheet = writer_customer.sheets[f'{customer}']
