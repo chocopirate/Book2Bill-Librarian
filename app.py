@@ -260,106 +260,109 @@ class Application(Frame):
     def compare_data(self):
         """Compares data per defined view to create custom levels of detail"""
         if self.fiw is not None and self.bms is not None and self.currency is not None:
-            # merging FIW and BMS tables with currency table exchange rates
-            self.fiw = self.fiw.merge(self.currency, how='left', on=['YEAR', 'MONTH', 'CURRENCY'])
-            self.bms = self.bms.merge(self.currency, how='left', on=['YEAR', 'MONTH', 'CURRENCY'])
-            self.fiw['BILLING USD'] = self.fiw['BILLING LOCAL'] * self.fiw['EXCH RATE']
-            self.bms['BILLING USD'] = self.bms['BILLING LOCAL'] * self.bms['EXCH RATE']
-            # FIW only columns
-            self.fiw['PERIODISATION USD'] = self.fiw['PERIODISATION LOCAL'] * self.fiw['EXCH RATE']
-            self.fiw['ACCRUAL USD'] = self.fiw['ACCRUAL LOCAL'] * self.fiw['EXCH RATE']
-            self.fiw['OTHER USD'] = self.fiw['OTHER LOCAL'] * self.fiw['EXCH RATE']
+            try:
+                # merging FIW and BMS tables with currency table exchange rates
+                self.fiw = self.fiw.merge(self.currency, how='left', on=['YEAR', 'MONTH', 'CURRENCY'])
+                self.bms = self.bms.merge(self.currency, how='left', on=['YEAR', 'MONTH', 'CURRENCY'])
+                self.fiw['BILLING USD'] = self.fiw['BILLING LOCAL'] * self.fiw['EXCH RATE']
+                self.bms['BILLING USD'] = self.bms['BILLING LOCAL'] * self.bms['EXCH RATE']
+                # FIW only columns
+                self.fiw['PERIODISATION USD'] = self.fiw['PERIODISATION LOCAL'] * self.fiw['EXCH RATE']
+                self.fiw['ACCRUAL USD'] = self.fiw['ACCRUAL LOCAL'] * self.fiw['EXCH RATE']
+                self.fiw['OTHER USD'] = self.fiw['OTHER LOCAL'] * self.fiw['EXCH RATE']
 
-            # extracting brand information from BMS data and applying that mapping to FIW data
-            self.bms['ACCRUAL LOCAL'] = 0
-            self.bms['ACCRUAL USD'] = 0
-            self.bms['PERIODISATION LOCAL'] = 0
-            self.bms['PERIODISATION USD'] = 0
-            self.bms['OTHER LOCAL'] = 0
-            self.bms['OTHER USD'] = 0
-            div_extract = self.bms[['CONTRACT', 'MAJOR', 'BMDIV']]
-            div_extract = div_extract.rename(columns={'BMDIV': 'DIV'})
-            div_extract.drop_duplicates(inplace=True)
+                # extracting brand information from BMS data and applying that mapping to FIW data
+                self.bms['ACCRUAL LOCAL'] = 0
+                self.bms['ACCRUAL USD'] = 0
+                self.bms['PERIODISATION LOCAL'] = 0
+                self.bms['PERIODISATION USD'] = 0
+                self.bms['OTHER LOCAL'] = 0
+                self.bms['OTHER USD'] = 0
+                div_extract = self.bms[['CONTRACT', 'MAJOR', 'BMDIV']]
+                div_extract = div_extract.rename(columns={'BMDIV': 'DIV'})
+                div_extract.drop_duplicates(inplace=True)
 
-            # creating data for Level 1 view
-            fiw1 = self.fiw[cols1].groupby(by=group1).sum()
-            fiw1['FIW BILLING LOCAL'] = fiw1['BILLING LOCAL']
-            fiw1['FIW BILLING USD'] = fiw1['BILLING USD']
-            bms1 = self.bms[cols1].groupby(by=group1).sum()
-            bms1['BMS BILLING LOCAL'] = bms1['BILLING LOCAL']
-            bms1['BMS BILLING USD'] = bms1['BILLING USD']
-            # Level 1 numeric fields for comparison
-            self.level1 = fiw1.subtract(bms1, axis='columns', fill_value=0)
-            self.level1.reset_index(inplace=True)
-            self.level1.rename(columns={'BILLING LOCAL': 'BILLING DELTA LOCAL'}, inplace=True)
-            self.level1['BMS BILLING LOCAL'] = self.level1['BMS BILLING LOCAL'] * -1
-            self.level1.rename(columns={'BILLING USD': 'BILLING DELTA USD'}, inplace=True)
-            self.level1['BMS BILLING USD'] = self.level1['BMS BILLING USD'] * -1
-            self.level1.fillna(0, inplace=True)
-            self.level1 = self.level1[level1_view]
+                # creating data for Level 1 view
+                fiw1 = self.fiw[cols1].groupby(by=group1).sum()
+                fiw1['FIW BILLING LOCAL'] = fiw1['BILLING LOCAL']
+                fiw1['FIW BILLING USD'] = fiw1['BILLING USD']
+                bms1 = self.bms[cols1].groupby(by=group1).sum()
+                bms1['BMS BILLING LOCAL'] = bms1['BILLING LOCAL']
+                bms1['BMS BILLING USD'] = bms1['BILLING USD']
+                # Level 1 numeric fields for comparison
+                self.level1 = fiw1.subtract(bms1, axis='columns', fill_value=0)
+                self.level1.reset_index(inplace=True)
+                self.level1.rename(columns={'BILLING LOCAL': 'BILLING DELTA LOCAL'}, inplace=True)
+                self.level1['BMS BILLING LOCAL'] = self.level1['BMS BILLING LOCAL'] * -1
+                self.level1.rename(columns={'BILLING USD': 'BILLING DELTA USD'}, inplace=True)
+                self.level1['BMS BILLING USD'] = self.level1['BMS BILLING USD'] * -1
+                self.level1.fillna(0, inplace=True)
+                self.level1 = self.level1[level1_view]
 
-            # creating data for Level 2 view
-            fiw2 = self.fiw[cols2].groupby(by=group2).sum()
-            fiw2['FIW BILLING LOCAL'] = fiw2['BILLING LOCAL']
-            fiw2['FIW BILLING USD'] = fiw2['BILLING USD']
-            bms2 = self.bms[cols2].groupby(by=group2).sum()
-            bms2['BMS BILLING LOCAL'] = bms2['BILLING LOCAL']
-            bms2['BMS BILLING USD'] = bms2['BILLING USD']
+                # creating data for Level 2 view
+                fiw2 = self.fiw[cols2].groupby(by=group2).sum()
+                fiw2['FIW BILLING LOCAL'] = fiw2['BILLING LOCAL']
+                fiw2['FIW BILLING USD'] = fiw2['BILLING USD']
+                bms2 = self.bms[cols2].groupby(by=group2).sum()
+                bms2['BMS BILLING LOCAL'] = bms2['BILLING LOCAL']
+                bms2['BMS BILLING USD'] = bms2['BILLING USD']
 
-            # ####### REMOVED #######
-            # use extract of INV_TYP from BMS data
-            # merge it to level 3 comparison
-            # invoices found in FIW, will be matched to INV_type too
-            # inv_typ = bms[['INVOICE', 'MAJOR', 'BMDIV']]
+                # ####### REMOVED #######
+                # use extract of INV_TYP from BMS data
+                # merge it to level 3 comparison
+                # invoices found in FIW, will be matched to INV_type too
+                # inv_typ = bms[['INVOICE', 'MAJOR', 'BMDIV']]
 
-            # Level 2 numeric fields for comparison
-            self.level2 = fiw2.subtract(bms2, axis='columns', fill_value=0)
-            self.level2.reset_index(inplace=True)
-            self.level2.rename(columns={'BILLING LOCAL': 'BILLING DELTA LOCAL'}, inplace=True)
-            self.level2['BMS BILLING LOCAL'] = self.level2['BMS BILLING LOCAL'] * -1
-            self.level2.rename(columns={'BILLING USD': 'BILLING DELTA USD'}, inplace=True)
-            self.level2['BMS BILLING USD'] = self.level2['BMS BILLING USD'] * -1
-            self.level2.fillna(0, inplace=True)
-            self.level2 = self.level2.merge(div_extract, how='left', on=['CONTRACT', 'MAJOR'])
-            self.level2.loc[self.level2['DIV'].isnull(), 'DIV'] = self.level2['BMDIV']
-            # level3 = level3.merge(inv_typ, how='left', on=['INVOICE', ''])
-            # reorder
-            self.level2 = self.level2[level2_view]
+                # Level 2 numeric fields for comparison
+                self.level2 = fiw2.subtract(bms2, axis='columns', fill_value=0)
+                self.level2.reset_index(inplace=True)
+                self.level2.rename(columns={'BILLING LOCAL': 'BILLING DELTA LOCAL'}, inplace=True)
+                self.level2['BMS BILLING LOCAL'] = self.level2['BMS BILLING LOCAL'] * -1
+                self.level2.rename(columns={'BILLING USD': 'BILLING DELTA USD'}, inplace=True)
+                self.level2['BMS BILLING USD'] = self.level2['BMS BILLING USD'] * -1
+                self.level2.fillna(0, inplace=True)
+                self.level2 = self.level2.merge(div_extract, how='left', on=['CONTRACT', 'MAJOR'])
+                self.level2.loc[self.level2['DIV'].isnull(), 'DIV'] = self.level2['BMDIV']
+                # level3 = level3.merge(inv_typ, how='left', on=['INVOICE', ''])
+                # reorder
+                self.level2 = self.level2[level2_view]
 
-            # creating data for YTD view
-            fiw0 = self.fiw[cols0].groupby(by=group0).sum()
-            fiw0['FIW BILLING LOCAL'] = fiw0['BILLING LOCAL']
-            fiw0['FIW BILLING USD'] = fiw0['BILLING USD']
-            bms0 = self.bms[cols0].groupby(by=group0).sum()
-            bms0['BMS BILLING LOCAL'] = bms0['BILLING LOCAL']
-            bms0['BMS BILLING USD'] = bms0['BILLING USD']
+                # creating data for YTD view
+                fiw0 = self.fiw[cols0].groupby(by=group0).sum()
+                fiw0['FIW BILLING LOCAL'] = fiw0['BILLING LOCAL']
+                fiw0['FIW BILLING USD'] = fiw0['BILLING USD']
+                bms0 = self.bms[cols0].groupby(by=group0).sum()
+                bms0['BMS BILLING LOCAL'] = bms0['BILLING LOCAL']
+                bms0['BMS BILLING USD'] = bms0['BILLING USD']
 
-            # YTD delta numeric fields for comparison
-            self.ytd_delta = fiw0.subtract(bms0, axis='columns', fill_value=0)
-            self.ytd_delta.reset_index(inplace=True)
-            self.ytd_delta.rename(columns={'BILLING LOCAL': 'BILLING DELTA LOCAL'}, inplace=True)
-            self.ytd_delta['BMS BILLING LOCAL'] = self.ytd_delta['BMS BILLING LOCAL'] * -1
-            self.ytd_delta.rename(columns={'BILLING USD': 'BILLING DELTA USD'}, inplace=True)
-            self.ytd_delta['BMS BILLING USD'] = self.ytd_delta['BMS BILLING USD'] * -1
-            self.ytd_delta.fillna(0, inplace=True)
-            # reorder
-            self.ytd_delta = self.ytd_delta[ytd_view]
+                # YTD delta numeric fields for comparison
+                self.ytd_delta = fiw0.subtract(bms0, axis='columns', fill_value=0)
+                self.ytd_delta.reset_index(inplace=True)
+                self.ytd_delta.rename(columns={'BILLING LOCAL': 'BILLING DELTA LOCAL'}, inplace=True)
+                self.ytd_delta['BMS BILLING LOCAL'] = self.ytd_delta['BMS BILLING LOCAL'] * -1
+                self.ytd_delta.rename(columns={'BILLING USD': 'BILLING DELTA USD'}, inplace=True)
+                self.ytd_delta['BMS BILLING USD'] = self.ytd_delta['BMS BILLING USD'] * -1
+                self.ytd_delta.fillna(0, inplace=True)
+                # reorder
+                self.ytd_delta = self.ytd_delta[ytd_view]
 
-            # creating customer view from Level 2 data
-            self.customers_df = fiw2.subtract(bms2, axis='columns', fill_value=0)
-            self.customers_df.reset_index(inplace=True)
-            self.customers_df.rename(columns={'BILLING LOCAL': 'BILLING DELTA LOCAL'}, inplace=True)
-            self.customers_df['BMS BILLING LOCAL'] = self.customers_df['BMS BILLING LOCAL'] * -1
-            self.customers_df.rename(columns={'BILLING USD': 'BILLING DELTA USD'}, inplace=True)
-            self.customers_df['BMS BILLING USD'] = self.customers_df['BMS BILLING USD'] * -1
-            self.customers_df.fillna(0, inplace=True)
-            self.customers_df = self.customers_df.merge(div_extract, how='left', on=['CONTRACT', 'MAJOR'])
-            self.customers_df['Comment'] = ''
-            # reorder
-            self.fiw = self.fiw[fiw_view]
-            self.bms = self.bms[bms_view]
+                # creating customer view from Level 2 data
+                self.customers_df = fiw2.subtract(bms2, axis='columns', fill_value=0)
+                self.customers_df.reset_index(inplace=True)
+                self.customers_df.rename(columns={'BILLING LOCAL': 'BILLING DELTA LOCAL'}, inplace=True)
+                self.customers_df['BMS BILLING LOCAL'] = self.customers_df['BMS BILLING LOCAL'] * -1
+                self.customers_df.rename(columns={'BILLING USD': 'BILLING DELTA USD'}, inplace=True)
+                self.customers_df['BMS BILLING USD'] = self.customers_df['BMS BILLING USD'] * -1
+                self.customers_df.fillna(0, inplace=True)
+                self.customers_df = self.customers_df.merge(div_extract, how='left', on=['CONTRACT', 'MAJOR'])
+                self.customers_df['Comment'] = ''
+                # reorder
+                self.fiw = self.fiw[fiw_view]
+                self.bms = self.bms[bms_view]
 
-            messagebox.showinfo(title='Status message', message='Data compared successfully')
+                messagebox.showinfo(title='Status message', message='Data compared successfully')
+            except KeyError as e:
+                messagebox.showerror(title='Invalid key', message='Check SQL for field name mismatches')
         else:
             messagebox.showerror(title='Missing data', message='FIW or BMS data was not retrieved.')
             if self.fiw_sql is not None:
