@@ -232,10 +232,6 @@ class Application(Frame):
                 self.not_busy()
                 messagebox.showinfo(title='Status message', message='BMS data retrieved successfully.')
                 return self.bms, self.currency
-            # ############## REMOVED ##############
-            # bms.loc[bms['INVOICENUMBER'].str.contains('X'), 'INV_TYPE'] = 'INT'
-            # bms.loc[bms['INVOICENUMBER'].str.contains('MAN'), 'INV_TYPE'] = 'MAN'
-            # bms.loc[bms['INVOICENUMBER'].str.contains('X|MAN') == False, 'INV_TYPE'] = 'EXT'
 
         else:
             if self.bms_sql is None and self.curr_sql is None and self.customers is None:
@@ -266,18 +262,21 @@ class Application(Frame):
                 self.bms = self.bms.merge(self.currency, how='left', on=['YEAR', 'MONTH', 'CURRENCY'])
                 self.fiw['BILLING USD'] = self.fiw['BILLING LOCAL'] * self.fiw['EXCH RATE']
                 self.bms['BILLING USD'] = self.bms['BILLING LOCAL'] * self.bms['EXCH RATE']
+
                 # FIW only columns
                 self.fiw['PERIODISATION USD'] = self.fiw['PERIODISATION LOCAL'] * self.fiw['EXCH RATE']
                 self.fiw['ACCRUAL USD'] = self.fiw['ACCRUAL LOCAL'] * self.fiw['EXCH RATE']
                 self.fiw['OTHER USD'] = self.fiw['OTHER LOCAL'] * self.fiw['EXCH RATE']
 
-                # extracting brand information from BMS data and applying that mapping to FIW data
+                # creating empty FIW columns for BMS
                 self.bms['ACCRUAL LOCAL'] = 0
                 self.bms['ACCRUAL USD'] = 0
                 self.bms['PERIODISATION LOCAL'] = 0
                 self.bms['PERIODISATION USD'] = 0
                 self.bms['OTHER LOCAL'] = 0
                 self.bms['OTHER USD'] = 0
+
+                # extracting brand information from BMS data to reuse in FIW
                 div_extract = self.bms[['CONTRACT', 'MAJOR', 'BMDIV']]
                 div_extract = div_extract.rename(columns={'BMDIV': 'DIV'})
                 div_extract.drop_duplicates(inplace=True)
@@ -289,6 +288,7 @@ class Application(Frame):
                 bms1 = self.bms[cols1].groupby(by=group1).sum()
                 bms1['BMS BILLING LOCAL'] = bms1['BILLING LOCAL']
                 bms1['BMS BILLING USD'] = bms1['BILLING USD']
+
                 # Level 1 numeric fields for comparison
                 self.level1 = fiw1.subtract(bms1, axis='columns', fill_value=0)
                 self.level1.reset_index(inplace=True)
@@ -300,9 +300,17 @@ class Application(Frame):
                 self.level1 = self.level1[level1_view]
 
                 # creating data for Level 2 view
+                # fiw2 = self.fiw[cols2]
+                # fiw2[group2] = fiw2[group2].astype(str)
+                # fiw2[group2] = fiw2[group2].fillna('')
+                # fiw2 = fiw2.groupby(by=group2).sum()
                 fiw2 = self.fiw[cols2].groupby(by=group2).sum()
                 fiw2['FIW BILLING LOCAL'] = fiw2['BILLING LOCAL']
                 fiw2['FIW BILLING USD'] = fiw2['BILLING USD']
+                # bms2 = self.bms[cols2]
+                # bms2[group2] = bms2[group2].astype(str)
+                # bms2[group2] = bms2[group2].fillna('')
+                # bms2 = bms2.groupby(by=group2).sum()
                 bms2 = self.bms[cols2].groupby(by=group2).sum()
                 bms2['BMS BILLING LOCAL'] = bms2['BILLING LOCAL']
                 bms2['BMS BILLING USD'] = bms2['BILLING USD']
@@ -323,7 +331,6 @@ class Application(Frame):
                 self.level2.fillna(0, inplace=True)
                 self.level2 = self.level2.merge(div_extract, how='left', on=['CONTRACT', 'MAJOR'])
                 self.level2.loc[self.level2['DIV'].isnull(), 'DIV'] = self.level2['BMDIV']
-                # level3 = level3.merge(inv_typ, how='left', on=['INVOICE', ''])
                 # reorder
                 self.level2 = self.level2[level2_view]
 
@@ -347,21 +354,13 @@ class Application(Frame):
                 self.ytd_delta = self.ytd_delta[ytd_view]
 
                 # creating customer view from Level 2 data
-                self.customers_df = fiw2.subtract(bms2, axis='columns', fill_value=0)
-                self.customers_df.reset_index(inplace=True)
-                self.customers_df.rename(columns={'BILLING LOCAL': 'BILLING DELTA LOCAL'}, inplace=True)
-                self.customers_df['BMS BILLING LOCAL'] = self.customers_df['BMS BILLING LOCAL'] * -1
-                self.customers_df.rename(columns={'BILLING USD': 'BILLING DELTA USD'}, inplace=True)
-                self.customers_df['BMS BILLING USD'] = self.customers_df['BMS BILLING USD'] * -1
-                self.customers_df.fillna(0, inplace=True)
-                self.customers_df = self.customers_df.merge(div_extract, how='left', on=['CONTRACT', 'MAJOR'])
-                self.customers_df['Comment'] = ''
+                self.customers_df = self.level2[cust_cols]
                 # reorder
                 self.fiw = self.fiw[fiw_view]
                 self.bms = self.bms[bms_view]
 
                 messagebox.showinfo(title='Status message', message='Data compared successfully')
-            except KeyError as e:
+            except KeyError:
                 messagebox.showerror(title='Invalid key', message='Check SQL for field name mismatches')
         else:
             messagebox.showerror(title='Missing data', message='FIW or BMS data was not retrieved.')
@@ -422,7 +421,7 @@ class Application(Frame):
             for customer in set(self.customers_df['CUSTOMER']):
                 writer_customer = ExcelWriter(save_location[0:int(save_location.rfind('/') + 1)] + f'{customer}.xlsx',
                                               engine='xlsxwriter')
-                individual_view = self.customers_df[cust_cols][self.customers_df['CUSTOMER'] == f'{customer}']
+                individual_view = self.customers_df[self.customers_df['CUSTOMER'] == f'{customer}']
                 workbook = writer_customer.book
                 individual_view.to_excel(writer_customer, sheet_name=f'{customer}', index=False)
                 worksheet = writer_customer.sheets[f'{customer}']
