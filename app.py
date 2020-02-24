@@ -105,7 +105,7 @@ class Application(Frame):
         file = filedialog.askopenfilename(parent=root, title='Select a spreadsheet with customer mapping:')
         try:
             if file is not '':
-                self.customers = read_excel(r'{}'.format(file), sheet_name='Customers')  # , encoding='utf-8')
+                self.customers = read_excel(r'{}'.format(file))
                 messagebox.showinfo(title='Status message', message='Mapping data loaded successfully.')
                 return self.customers
         except Exception:
@@ -409,6 +409,12 @@ class Application(Frame):
             writer_main = ExcelWriter(save_location, engine='xlsxwriter')
             for sheet_key, sheet_val in sheets.items():
                 workbook = writer_main.book
+                if len(sheet_key) > 31:
+                    sheet_key = sheet_key[:29]
+                else:
+                    pass
+                sheet_key = sheet_key.replace('/', ' ').replace('*', ' ').replace('\\', ' ').replace('?', ' ').\
+                    replace('[', ' ').replace(']', ' ').replace(':', ' ')
                 sheet_val[0].to_excel(writer_main, sheet_name=f'{sheet_key}', index=False)
                 worksheet = writer_main.sheets[f'{sheet_key}']
                 format1 = workbook.add_format({'num_format': '#,##0.00'})
@@ -423,6 +429,12 @@ class Application(Frame):
                                               engine='xlsxwriter')
                 individual_view = self.customers_df[self.customers_df['CUSTOMER'] == f'{customer}']
                 workbook = writer_customer.book
+                if len(customer) > 31:
+                    customer = customer[:29]
+                else:
+                    pass
+                customer = customer.replace('/', ' ').replace('*', ' ').replace('\\', ' ').replace('?', ' '). \
+                    replace('[', ' ').replace(']', ' ').replace(':', ' ')
                 individual_view.to_excel(writer_customer, sheet_name=f'{customer}', index=False)
                 worksheet = writer_customer.sheets[f'{customer}']
                 format1 = workbook.add_format({'num_format': '#,##0.00'})
