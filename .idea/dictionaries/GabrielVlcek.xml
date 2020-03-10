@@ -2,19 +2,35 @@
   <dictionary name="GabrielVlcek">
     <words>
       <w>autofit</w>
+      <w>billfromdate</w>
+      <w>billingdate</w>
+      <w>billingmonth</w>
+      <w>billthrudate</w>
       <w>bldbmsa</w>
       <w>bmdiv</w>
+      <w>businesstype</w>
+      <w>chargecode</w>
       <w>cust</w>
+      <w>custname</w>
+      <w>custnum</w>
+      <w>customercontrol</w>
+      <w>customernumber</w>
       <w>dataframe</w>
+      <w>descr</w>
       <w>exch</w>
       <w>imts</w>
+      <w>invoicedamount</w>
+      <w>invoicedate</w>
       <w>invoicenumber</w>
+      <w>invoicestatus</w>
+      <w>invoicetext</w>
       <w>keydb</w>
       <w>keystash</w>
       <w>keysth</w>
       <w>keystoredb</w>
       <w>mwncdsnb</w>
       <w>periodisation</w>
+      <w>prodid</w>
       <w>projectnum</w>
       <w>savefile</w>
       <w>sheetname</w>

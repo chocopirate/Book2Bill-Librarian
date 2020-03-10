@@ -106,10 +106,13 @@ class Application(Frame):
         try:
             if file is not '':
                 self.customers = read_excel(r'{}'.format(file))
-                messagebox.showinfo(title='Status message', message='Mapping data loaded successfully.')
+                self.customers = self.customers.astype(str)
+                messagebox.showinfo(title='Status message',
+                                    message='Mapping data loaded successfully.')
                 return self.customers
         except Exception:
-            messagebox.showerror(title='Wrong format', message='File format not supported, use .xlsx format.')
+            messagebox.showerror(title='Status message',
+                                 message='File format not supported, use .xlsx format.')
 
     def open_curr_sql(self):
         """Reads lines from text file to parse SQL"""
@@ -117,11 +120,14 @@ class Application(Frame):
         try:
             if file is not None:
                 self.curr_sql = file.read()
-                messagebox.showinfo(title='Status message', message='SQL loaded successfully.')
+                messagebox.showinfo(title='Status message',
+                                    message='SQL loaded successfully.')
                 return self.curr_sql
-            messagebox.showerror(title='Wrong format', message='File format not supported, use .txt format.')
+            messagebox.showerror(title='Status message',
+                                 message='File format not supported, use .txt format.')
         except Exception:
-            messagebox.showerror(title='Wrong format', message='File format not supported, use .txt format.')
+            messagebox.showerror(title='Status message',
+                                 message='File format not supported, use .txt format.')
 
     def open_fiw_sql(self):
         """Reads lines from text file to parse SQL"""
@@ -129,11 +135,14 @@ class Application(Frame):
         try:
             if file is not None:
                 self.fiw_sql = file.read()
-                messagebox.showinfo(title='Status message', message='SQL loaded successfully.')
+                messagebox.showinfo(title='Status message',
+                                    message='SQL loaded successfully.')
                 return self.fiw_sql
-            messagebox.showerror(title='Wrong format', message='File format not supported, use .txt format.')
+            messagebox.showerror(title='Wrong format',
+                                 message='File format not supported, use .txt format.')
         except Exception:
-            messagebox.showerror(title='Wrong format', message='File format not supported, use .txt format.')
+            messagebox.showerror(title='Wrong format',
+                                 message='File format not supported, use .txt format.')
 
     def open_bms_sql(self):
         """Reads lines from text file to parse SQL"""
@@ -141,10 +150,12 @@ class Application(Frame):
         try:
             if file is not None:
                 self.bms_sql = file.read()
-                messagebox.showinfo(title='Status message', message='SQL loaded successfully.')
+                messagebox.showinfo(title='Status message',
+                                    message='SQL loaded successfully.')
                 return self.bms_sql
         except Exception:
-            messagebox.showerror(title='Wrong format', message='File format not supported, use .txt format.')
+            messagebox.showerror(title='Wrong format',
+                                 message='File format not supported, use .txt format.')
 
     def retrieve_fiw(self):
         """Retrieves data from FIW server using provided credentials and SQL"""
@@ -174,25 +185,35 @@ class Application(Frame):
                 conn_engine_fiw = ibm_db.connect(dsn_fiw, '', '')
                 conn_fiw = ibm_db_dbi.Connection(conn_engine_fiw)
             except Exception:
-                messagebox.showerror(title='Authentication failed', message='Invalid credentials!')
+                messagebox.showerror(title='Authentication failed',
+                                     message='Invalid FIW credentials!')
             else:
-                self.busy()
-                self.fiw = read_sql(self.fiw_sql, conn_fiw)
-                self.fiw = self.fiw.merge(self.customers, how='left', on='CONTRACT')
-                self.not_busy()
-                if self.fiw.shape[0] > 0:
-                    messagebox.showinfo(title='Status message', message='FIW data retrieved successfully.')
-                return self.fiw
+                try:
+                    self.busy()
+                    self.fiw = read_sql(self.fiw_sql, conn_fiw)
+                    self.fiw = self.fiw.merge(self.customers, how='left', on='CONTRACT')
+                    self.not_busy()
+                    if self.fiw.shape[0] > 0:
+                        messagebox.showinfo(title='Status message',
+                                            message='FIW data retrieved successfully.')
+                        return self.fiw
+                    else:
+                        messagebox.showerror(title='Data could not be retrieved',
+                                             message='Check FIW SQL on input.')
+                except Exception:
+                    self.not_busy()
+                    messagebox.showerror(title='Authorization error.',
+                                         message='Check your access privileges and server status.')
 
         else:
             if self.fiw_sql is None and self.customers is None:
-                messagebox.showwarning(title='Status message',
+                messagebox.showwarning(title='Missing input data',
                                        message='Proceed by loading FIW SQL and customer mapping')
             elif self.customers is None:
-                messagebox.showwarning(title='Status message',
+                messagebox.showwarning(title='Missing input data',
                                        message='Proceed by loading customer mapping')
             else:
-                messagebox.showwarning(title='Status message',
+                messagebox.showwarning(title='Missing input data',
                                        message='Proceed by loading FIW SQL')
 
     def retrieve_bms(self):
@@ -223,15 +244,27 @@ class Application(Frame):
                 conn_engine_bms = ibm_db.connect(dsn_bms, '', '')
                 conn_bms = ibm_db_dbi.Connection(conn_engine_bms)
             except Exception:
-                messagebox.showerror(title='Authentication failed', message='Invalid credentials!')
+                messagebox.showerror(title='Authentication failed',
+                                     message='Invalid BMS credentials')
             else:
-                self.busy()
-                self.bms = read_sql(self.bms_sql, conn_bms)
-                self.currency = read_sql(self.curr_sql, conn_bms)
-                self.bms = self.bms.merge(self.customers, how='left', on='CONTRACT')
-                self.not_busy()
-                messagebox.showinfo(title='Status message', message='BMS data retrieved successfully.')
-                return self.bms, self.currency
+                try:
+                    self.busy()
+                    self.bms = read_sql(self.bms_sql, conn_bms)
+                    self.currency = read_sql(self.curr_sql, conn_bms)
+                    self.bms = self.bms.merge(self.customers, how='left', on='CONTRACT')
+                    self.not_busy()
+                    if self.bms.shape[0] > 0 and self.currency.shape[0] > 0:
+                        messagebox.showinfo(title='Status message',
+                                            message='BMS data retrieved successfully.')
+                        return self.bms, self.currency
+                    else:
+                        self.not_busy()
+                        messagebox.showerror(title='Data could not be retrieved',
+                                             message='Check BMS and currency SQL on input.')
+                except Exception:
+                    messagebox.showerror(title='Authorization error',
+                                         message='Invalid BMS access level.\n'
+                                                 'Check the SQL for _V or _UV table suffixes.')
 
         else:
             if self.bms_sql is None and self.curr_sql is None and self.customers is None:
@@ -299,27 +332,12 @@ class Application(Frame):
                 self.level1.fillna(0, inplace=True)
                 self.level1 = self.level1[level1_view]
 
-                # creating data for Level 2 view
-                # fiw2 = self.fiw[cols2]
-                # fiw2[group2] = fiw2[group2].astype(str)
-                # fiw2[group2] = fiw2[group2].fillna('')
-                # fiw2 = fiw2.groupby(by=group2).sum()
                 fiw2 = self.fiw[cols2].groupby(by=group2).sum()
                 fiw2['FIW BILLING LOCAL'] = fiw2['BILLING LOCAL']
                 fiw2['FIW BILLING USD'] = fiw2['BILLING USD']
-                # bms2 = self.bms[cols2]
-                # bms2[group2] = bms2[group2].astype(str)
-                # bms2[group2] = bms2[group2].fillna('')
-                # bms2 = bms2.groupby(by=group2).sum()
                 bms2 = self.bms[cols2].groupby(by=group2).sum()
                 bms2['BMS BILLING LOCAL'] = bms2['BILLING LOCAL']
                 bms2['BMS BILLING USD'] = bms2['BILLING USD']
-
-                # ####### REMOVED #######
-                # use extract of INV_TYP from BMS data
-                # merge it to level 3 comparison
-                # invoices found in FIW, will be matched to INV_type too
-                # inv_typ = bms[['INVOICE', 'MAJOR', 'BMDIV']]
 
                 # Level 2 numeric fields for comparison
                 self.level2 = fiw2.subtract(bms2, axis='columns', fill_value=0)
@@ -359,16 +377,25 @@ class Application(Frame):
                 self.fiw = self.fiw[fiw_view]
                 self.bms = self.bms[bms_view]
 
-                messagebox.showinfo(title='Status message', message='Data compared successfully')
+                messagebox.showinfo(title='Status message',
+                                    message='Data compared successfully')
             except KeyError:
-                messagebox.showerror(title='Invalid key', message='Check SQL for field name mismatches')
+                messagebox.showerror(title='Invalid key',
+                                     message='Check SQL codes for mismatches in column names.')
+            except Exception:
+                messagebox.showerror(title='Status message',
+                                     message='An error has occurred during data comparison.')
+
         else:
-            messagebox.showerror(title='Missing data', message='FIW or BMS data was not retrieved.')
+            messagebox.showerror(title='Missing input data',
+                                 message='FIW or BMS data was not retrieved.')
             if self.fiw_sql is not None:
-                messagebox.showinfo(title='Query', message='FIW data will be retrieved')
+                messagebox.showinfo(title='Query',
+                                    message='FIW data will be retrieved')
                 self.retrieve_fiw()
             if self.bms_sql is not None and self.curr_sql is not None:
-                messagebox.showinfo(title='Query', message='BMS data will be retrieved')
+                messagebox.showinfo(title='Query',
+                                    message='BMS data will be retrieved')
                 self.retrieve_bms()
 
     def saver(self):
@@ -380,8 +407,6 @@ class Application(Frame):
                                                                     ('All files', '*.*')))
             if save_location[-5:] != '.xlsx':
                 save_location = save_location + '.xlsx'
-            else:
-                pass
 
             def autofit_columns(df):
                 header_width = [len(col) for col in list(df.columns)]
@@ -395,7 +420,7 @@ class Application(Frame):
                 max_width = []
                 for h, v in width_comp:
                     if h > v:
-                        max_width.append(h + 3)
+                        max_width.append(h + 2)
                     elif h < v:
                         max_width.append(v + 2)
                     elif h == v:
@@ -404,53 +429,57 @@ class Application(Frame):
 
             sheets = {'FIW': [self.fiw, 'AB:AJ'], 'BMS': [self.bms, 'AA:AI'], 'YTD Overview': [self.ytd_delta, 'C:N'],
                       'Level 1': [self.level1, 'D:O'], 'Level 2': [self.level2, 'I:T']}
+            try:
+                # Creates main B2B report and formats output
+                self.busy()
+                writer_main = ExcelWriter(save_location, engine='xlsxwriter')
+                for sheet_key, sheet_val in sheets.items():
+                    workbook = writer_main.book
+                    if len(sheet_key) > 30:
+                        sheet_key = sheet_key[:29]
+                    sheet_val[0].to_excel(writer_main, sheet_name=f'{sheet_key}', index=False)
+                    worksheet = writer_main.sheets[f'{sheet_key}']
+                    format1 = workbook.add_format({'num_format': '#,##0.00'})
+                    worksheet.set_column(sheet_val[1], None, format1)
+                    w = autofit_columns(sheet_val[0])
+                    for n, w in enumerate(w):
+                        worksheet.set_column(n, n, w)
+                writer_main.save()
 
-            self.busy()
-            writer_main = ExcelWriter(save_location, engine='xlsxwriter')
-            for sheet_key, sheet_val in sheets.items():
-                workbook = writer_main.book
-                if len(sheet_key) > 31:
-                    sheet_key = sheet_key[:29]
-                else:
-                    pass
-                sheet_key = sheet_key.replace('/', ' ').replace('*', ' ').replace('\\', ' ').replace('?', ' ').\
-                    replace('[', ' ').replace(']', ' ').replace(':', ' ')
-                sheet_val[0].to_excel(writer_main, sheet_name=f'{sheet_key}', index=False)
-                worksheet = writer_main.sheets[f'{sheet_key}']
-                format1 = workbook.add_format({'num_format': '#,##0.00'})
-                worksheet.set_column(sheet_val[1], None, format1)
-                w = autofit_columns(sheet_val[0])
-                for n, w in enumerate(w):
-                    worksheet.set_column(n, n, w)
-            writer_main.save()
+                # Creates singular customer-only reports
+                for customer in set(self.customers_df['CUSTOMER']):
+                    customer_trimmed = str(customer).replace('/', ' ').replace('*', ' ').replace('\\', ' ').\
+                        replace('?', ' ').replace('[', '').replace(']', '').replace(':', '').replace('\"', '').\
+                        replace('<', '').replace('>', '').replace('|', '').replace('"', '').strip('"')
 
-            for customer in set(self.customers_df['CUSTOMER']):
-                writer_customer = ExcelWriter(save_location[0:int(save_location.rfind('/') + 1)] + f'{customer}.xlsx',
-                                              engine='xlsxwriter')
-                individual_view = self.customers_df[self.customers_df['CUSTOMER'] == f'{customer}']
-                workbook = writer_customer.book
-                if len(customer) > 31:
-                    customer = customer[:29]
-                else:
-                    pass
-                customer = customer.replace('/', ' ').replace('*', ' ').replace('\\', ' ').replace('?', ' '). \
-                    replace('[', ' ').replace(']', ' ').replace(':', ' ')
-                individual_view.to_excel(writer_customer, sheet_name=f'{customer}', index=False)
-                worksheet = writer_customer.sheets[f'{customer}']
-                format1 = workbook.add_format({'num_format': '#,##0.00'})
-                worksheet.set_column('H:S', None, format1)
-                w = autofit_columns(individual_view)
+                    if len(customer_trimmed) > 30:
+                        customer_trimmed = customer_trimmed[:29]
+                    writer_customer = ExcelWriter(save_location[0:int(save_location.rfind('/') + 1)] +
+                                                  f'{customer_trimmed}.xlsx', engine='xlsxwriter')
+                    individual_view = self.customers_df[self.customers_df['CUSTOMER'] == f'{customer}']
+                    workbook = writer_customer.book
+                    individual_view.to_excel(writer_customer, sheet_name=f'{customer_trimmed}', index=False)
+                    worksheet = writer_customer.sheets[f'{customer}']
+                    format1 = workbook.add_format({'num_format': '#,##0.00'})
+                    worksheet.set_column('H:S', None, format1)
+                    w = autofit_columns(individual_view)
 
-                for n, w in enumerate(w):
-                    worksheet.set_column(n, n, w)
-                writer_customer.save()
-                writer_customer.close()
+                    for n, w in enumerate(w):
+                        worksheet.set_column(n, n, w)
+                    writer_customer.save()
+                    writer_customer.close()
 
-            self.not_busy()
-
-            messagebox.showinfo(title='Status message', message='Data has been saved.')
+                self.not_busy()
+            except Exception:
+                messagebox.showerror(title='Status message',
+                                     message='An error occurred during data saving.\n'
+                                             'Check the requirements of input data')
+            messagebox.showinfo(title='Status message',
+                                message='Data has been saved.')
         else:
-            messagebox.showerror(title='Status message', message='Necessary data has not been retrieved')
+            messagebox.showerror(title='Status message',
+                                 message='Necessary data has not been retrieved.\n'
+                                         'Make sure all inputs are provided and data is retrieved.')
 
 
 if __name__ == "__main__":
