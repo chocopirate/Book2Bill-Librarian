@@ -5,43 +5,76 @@ from tkinter import Tk, filedialog, messagebox, Frame, Button, Label, Entry, Str
 
 options.display.float_format = '${:,.2f}'.format
 
-cols0 = ['CUSTOMER', 'CONTRACT', 'BILLING LOCAL', 'BILLING USD', 'PERIODISATION LOCAL', 'PERIODISATION USD',
-         'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
-cols1 = ['CUSTOMER', 'CONTRACT', 'MONTH', 'BILLING LOCAL', 'BILLING USD', 'PERIODISATION LOCAL',
-         'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
-cols2 = ['CUSTOMER', 'CONTRACT', 'MONTH', 'BMDIV', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'BILLING LOCAL', 'BILLING USD',
-         'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
-cust_cols = ['CUSTOMER', 'CONTRACT', 'MONTH', 'DIV', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'FIW BILLING LOCAL',
-             'BMS BILLING LOCAL', 'BILLING DELTA LOCAL', 'FIW BILLING USD', 'BMS BILLING USD', 'BILLING DELTA USD',
-             'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
-group0 = ['CUSTOMER', 'CONTRACT']
-group1 = ['CUSTOMER', 'CONTRACT', 'MONTH']
-group2 = ['CUSTOMER', 'CONTRACT', 'MONTH', 'BMDIV', 'MAJOR', 'INVOICE', 'PROJECTNUM']
-cust_group = ['CUSTOMER', 'CONTRACT', 'MONTH', 'DIV', 'MAJOR', 'INVOICE', 'PROJECTNUM']
-ytd_view = ['CUSTOMER', 'CONTRACT', 'FIW BILLING LOCAL', 'BMS BILLING LOCAL', 'BILLING DELTA LOCAL', 'FIW BILLING USD',
-            'BMS BILLING USD', 'BILLING DELTA USD', 'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL',
-            'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
-level1_view = ['CUSTOMER', 'CONTRACT', 'MONTH', 'FIW BILLING LOCAL', 'BMS BILLING LOCAL', 'BILLING DELTA LOCAL',
-               'FIW BILLING USD', 'BMS BILLING USD', 'BILLING DELTA USD', 'PERIODISATION LOCAL', 'PERIODISATION USD',
-               'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
-level2_view = ['CUSTOMER', 'CONTRACT', 'MONTH', 'BMDIV', 'DIV', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'FIW BILLING LOCAL',
-               'BMS BILLING LOCAL', 'BILLING DELTA LOCAL', 'FIW BILLING USD', 'BMS BILLING USD', 'BILLING DELTA USD',
-               'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
-fiw_view = ['WW_SECTOR', 'WW_SECTOR_NAME', 'CUSTNAME', 'CONTRACT', 'PROJECTNUM', 'CUSTNUM', 'YEAR', 'MONTH', 'LC',
-            'BMDIV', 'MAJOR', 'MINOR', 'DESCR1', 'DESCR2', 'LDIV', 'COUNTRY', 'VOUCHER_GRP_NBR', 'VOUCHER_NBR',
-            'PRODID', 'RUN_DATE', 'FID', 'INVOICE', 'SRC', 'EVENT_CODE', 'QUARTER', 'CUSTOMER', 'CURRENCY', 'EXCH RATE',
-            'BILLING LOCAL', 'BILLING USD', 'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD',
-            'OTHER LOCAL', 'OTHER USD']
-bms_view = ['CONTRACT', 'PROJECTNUM', 'CUSTOMERNUMBER', 'CUSTOMERCONTROL', 'YEAR', 'MONTH', 'MAJOR', 'BMDIV',
-            'DESCRIPTION', 'COUNTRY', 'BILLINGDATE', 'INVOICETEXT', 'INVOICESTATUS', 'INVOICENUMBER', 'SRC_TABLE',
-            'INVOICEDATE', 'QRY_RUN_DT', 'BILLTHRUDATE', 'BILLFROMDATE', 'BILLINGMONTH', 'INVOICEDAMOUNT', 'CHARGECODE',
-            'BUSINESSTYPE', 'CURRENCY', 'INVOICE', 'CUSTOMER', 'EXCH RATE', 'BILLING LOCAL', 'BILLING USD',
-            'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD']
+# columns for data selection
+cols0 = [
+    'CUSTOMER', 'CONTRACT', 'INVOICED LOCAL', 'INVOICED USD', 'PERIODISATION LOCAL', 'PERIODISATION USD',
+    'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD', 'TOTAL REVENUE LOCAL', 'TOTAL REVENUE USD'
+]
+cols1 = [
+    'CUSTOMER', 'CONTRACT', 'MONTH', 'INVOICED LOCAL', 'INVOICED USD', 'PERIODISATION LOCAL', 'PERIODISATION USD',
+    'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD', 'TOTAL REVENUE LOCAL', 'TOTAL REVENUE USD'
+]
+cols2 = [
+    'CUSTOMER', 'CONTRACT', 'MONTH', 'BMDIV', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'INVOICED LOCAL', 'INVOICED USD',
+    'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD',
+    'TOTAL REVENUE LOCAL', 'TOTAL REVENUE USD'
+]
+cust_cols = [
+    'CUSTOMER', 'CONTRACT', 'MONTH', 'DIV', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'FIW INVOICED LOCAL',
+    'BMS INVOICED LOCAL', 'INVOICED DELTA LOCAL', 'FIW INVOICED USD', 'BMS INVOICED USD', 'INVOICED DELTA USD',
+    'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD',
+    'TOTAL REVENUE LOCAL', 'TOTAL REVENUE USD'
+]
+# categorical columns for grouping selected data
+group0 = [
+    'CUSTOMER', 'CONTRACT'
+]
+group1 = [
+    'CUSTOMER', 'CONTRACT', 'MONTH'
+]
+group2 = [
+    'CUSTOMER', 'CONTRACT', 'MONTH', 'BMDIV', 'MAJOR', 'INVOICE', 'PROJECTNUM'
+]
+cust_group = [
+    'CUSTOMER', 'CONTRACT', 'MONTH', 'DIV', 'MAJOR', 'INVOICE', 'PROJECTNUM'
+]
+
+# columns for ordering data
+ytd_view = [
+    'CUSTOMER', 'CONTRACT', 'FIW INVOICED LOCAL', 'BMS INVOICED LOCAL', 'INVOICED DELTA LOCAL', 'FIW INVOICED USD',
+    'BMS INVOICED USD', 'INVOICED DELTA USD', 'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL',
+    'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD', 'TOTAL REVENUE LOCAL', 'TOTAL REVENUE USD'
+]
+level1_view = [
+    'CUSTOMER', 'CONTRACT', 'MONTH', 'FIW INVOICED LOCAL', 'BMS INVOICED LOCAL', 'INVOICED DELTA LOCAL',
+    'FIW INVOICED USD', 'BMS INVOICED USD', 'INVOICED DELTA USD', 'PERIODISATION LOCAL', 'PERIODISATION USD',
+    'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD', 'TOTAL REVENUE LOCAL', 'TOTAL REVENUE USD'
+]
+level2_view = [
+    'CUSTOMER', 'CONTRACT', 'MONTH', 'BMDIV', 'DIV', 'MAJOR', 'INVOICE', 'PROJECTNUM', 'FIW INVOICED LOCAL',
+    'BMS INVOICED LOCAL', 'INVOICED DELTA LOCAL', 'FIW INVOICED USD', 'BMS INVOICED USD', 'INVOICED DELTA USD',
+    'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD',
+    'TOTAL REVENUE LOCAL', 'TOTAL REVENUE USD'
+]
+fiw_view = [
+    'WW_SECTOR', 'WW_SECTOR_NAME', 'CUSTNAME', 'CONTRACT', 'PROJECTNUM', 'CUSTNUM', 'YEAR', 'MONTH', 'LC', 'BMDIV',
+    'MAJOR', 'MINOR', 'DESCR1', 'DESCR2', 'LDIV', 'COUNTRY', 'VOUCHER_GRP_NBR', 'VOUCHER_NBR', 'PRODID', 'RUN_DATE',
+    'FID', 'INVOICE', 'SRC', 'EVENT_CODE', 'QUARTER', 'CUSTOMER', 'CURRENCY', 'EXCH RATE', 'INVOICED LOCAL',
+    'INVOICED USD', 'PERIODISATION LOCAL', 'PERIODISATION USD', 'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL',
+    'OTHER USD', 'TOTAL REVENUE LOCAL', 'TOTAL REVENUE USD'
+]
+bms_view = [
+    'CONTRACT', 'PROJECTNUM', 'CUSTOMERNUMBER', 'CUSTOMERCONTROL', 'YEAR', 'MONTH', 'MAJOR', 'BMDIV', 'DESCRIPTION',
+    'COUNTRY', 'BILLINGDATE', 'INVOICETEXT', 'INVOICESTATUS', 'INVOICENUMBER', 'SRC_TABLE', 'INVOICEDATE', 'QRY_RUN_DT',
+    'BILLTHRUDATE', 'BILLFROMDATE', 'BILLINGMONTH', 'INVOICEDAMOUNT', 'CHARGECODE', 'BUSINESSTYPE', 'CURRENCY',
+    'INVOICE', 'CUSTOMER', 'EXCH RATE', 'INVOICED LOCAL', 'INVOICED USD'
+    # , 'PERIODISATION LOCAL', 'PERIODISATION USD',
+    # 'ACCRUAL LOCAL', 'ACCRUAL USD', 'OTHER LOCAL', 'OTHER USD'
+]
 
 
 # noinspection PyBroadException
 class Application(Frame):
-
     def __init__(self, parent):
         Frame.__init__(self, parent)
         self.parent = parent
@@ -64,22 +97,26 @@ class Application(Frame):
         self.bms_uid_field = StringVar()
         self.bms_pwd_field = StringVar()
 
-        Button(self, relief='groove', text='1a) Load customer data', width=18, command=self.load_customers).place(x=154,
-                                                                                                                  y=10)
-        Button(self, relief='groove', text='1b) Load Currency SQL', width=18, command=self.open_curr_sql).place(x=154,
-                                                                                                                y=40)
-        Button(self, relief='groove', text='2a) Load FIW SQL', width=16, command=self.open_fiw_sql).place(x=20, y=80)
-        Button(self, relief='groove', text='2b) Load BMS SQL', width=16, command=self.open_bms_sql).place(x=300, y=80)
+        Button(self, relief='groove', text='1a) Load customer data',
+               width=18, command=self.load_customers).place(x=154, y=10)
+        Button(self, relief='groove', text='1b) Load Currency SQL',
+               width=18, command=self.open_curr_sql).place(x=154, y=40)
+        Button(self, relief='groove', text='2a) Load FIW SQL',
+               width=16, command=self.open_fiw_sql).place(x=20, y=80)
+        Button(self, relief='groove', text='2b) Load BMS SQL',
+               width=16, command=self.open_bms_sql).place(x=300, y=80)
         Label(self, text='FIW ID').place(x=20, y=110)
-        Entry(self, relief='groove', borderwidth='2', textvariable=self.fiw_uid_field, width=14).place(x=20, y=130)
+        Entry(self, relief='groove', borderwidth='2',
+              textvariable=self.fiw_uid_field, width=14).place(x=20, y=130)
         Label(self, text='FIW Password').place(x=20, y=150)
-        Entry(self, relief='groove', borderwidth='2', textvariable=self.fiw_pwd_field, width=14, show='*').place(x=20,
-                                                                                                                 y=170)
+        Entry(self, relief='groove', borderwidth='2',
+              textvariable=self.fiw_pwd_field, width=14, show='*').place(x=20, y=170)
         Label(self, text='BMS ID').place(x=300, y=110)
-        Entry(self, relief='groove', borderwidth='2', textvariable=self.bms_uid_field, width=14).place(x=300, y=130)
+        Entry(self, relief='groove', borderwidth='2',
+              textvariable=self.bms_uid_field, width=14).place(x=300, y=130)
         Label(self, text='BMS Password').place(x=300, y=150)
-        Entry(self, relief='groove', borderwidth='2', textvariable=self.bms_pwd_field, width=14, show='*').place(x=300,
-                                                                                                                 y=170)
+        Entry(self, relief='groove', borderwidth='2',
+              textvariable=self.bms_pwd_field, width=14, show='*').place(x=300, y=170)
         Button(self, relief='groove', text='3a) Retrieve FIW', width=16, command=self.retrieve_fiw).place(x=20, y=200)
         Button(self, relief='groove', text='3b) Retrieve BMS', width=16, command=self.retrieve_bms).place(x=300, y=200)
         Button(self, relief='groove', text='4) Compare data', width=18, command=self.compare_data).place(x=154, y=240)
@@ -181,7 +218,8 @@ class Application(Frame):
                     f'PWD={pwd};'
                     f'SECURITY={security};'
                     f'SSL_keystoredb={keydb};'
-                    f'SSL_keystash={keysth};')
+                    f'SSL_keystash={keysth};'
+                )
                 conn_engine_fiw = ibm_db.connect(dsn_fiw, '', '')
                 conn_fiw = ibm_db_dbi.Connection(conn_engine_fiw)
             except Exception:
@@ -240,7 +278,8 @@ class Application(Frame):
                     f'PWD={pwd};'
                     f'SECURITY={security};'
                     f'SSL_keystoredb={keydb};'
-                    f'SSL_keystash={keysth};')
+                    f'SSL_keystash={keysth};'
+                )
                 conn_engine_bms = ibm_db.connect(dsn_bms, '', '')
                 conn_bms = ibm_db_dbi.Connection(conn_engine_bms)
             except Exception:
@@ -293,13 +332,14 @@ class Application(Frame):
                 # merging FIW and BMS tables with currency table exchange rates
                 self.fiw = self.fiw.merge(self.currency, how='left', on=['YEAR', 'MONTH', 'CURRENCY'])
                 self.bms = self.bms.merge(self.currency, how='left', on=['YEAR', 'MONTH', 'CURRENCY'])
-                self.fiw['BILLING USD'] = self.fiw['BILLING LOCAL'] * self.fiw['EXCH RATE']
-                self.bms['BILLING USD'] = self.bms['BILLING LOCAL'] * self.bms['EXCH RATE']
+                self.fiw['INVOICED USD'] = self.fiw['INVOICED LOCAL'] * self.fiw['EXCH RATE']
+                self.bms['INVOICED USD'] = self.bms['INVOICED LOCAL'] * self.bms['EXCH RATE']
 
                 # FIW only columns
                 self.fiw['PERIODISATION USD'] = self.fiw['PERIODISATION LOCAL'] * self.fiw['EXCH RATE']
                 self.fiw['ACCRUAL USD'] = self.fiw['ACCRUAL LOCAL'] * self.fiw['EXCH RATE']
                 self.fiw['OTHER USD'] = self.fiw['OTHER LOCAL'] * self.fiw['EXCH RATE']
+                self.fiw['TOTAL REVENUE USD'] = self.fiw['TOTAL REVENUE LOCAL'] * self.fiw['EXCH RATE']
 
                 # creating empty FIW columns for BMS
                 self.bms['ACCRUAL LOCAL'] = 0
@@ -308,6 +348,8 @@ class Application(Frame):
                 self.bms['PERIODISATION USD'] = 0
                 self.bms['OTHER LOCAL'] = 0
                 self.bms['OTHER USD'] = 0
+                self.bms['TOTAL REVENUE LOCAL'] = 0
+                self.bms['TOTAL REVENUE USD'] = 0
 
                 # extracting brand information from BMS data to reuse in FIW
                 div_extract = self.bms[['CONTRACT', 'MAJOR', 'BMDIV']]
@@ -316,36 +358,41 @@ class Application(Frame):
 
                 # creating data for Level 1 view
                 fiw1 = self.fiw[cols1].groupby(by=group1).sum()
-                fiw1['FIW BILLING LOCAL'] = fiw1['BILLING LOCAL']
-                fiw1['FIW BILLING USD'] = fiw1['BILLING USD']
+                fiw1['FIW INVOICED LOCAL'] = fiw1['INVOICED LOCAL']
+                fiw1['FIW INVOICED USD'] = fiw1['INVOICED USD']
+                # fiw1['FIW TOTAL REVENUE LOCAL'] = fiw1['TOTAL REVENUE LOCAL']
+                # fiw1['FIW TOTAL REVENUE USD'] = fiw1['TOTAL REVENUE USD']
                 bms1 = self.bms[cols1].groupby(by=group1).sum()
-                bms1['BMS BILLING LOCAL'] = bms1['BILLING LOCAL']
-                bms1['BMS BILLING USD'] = bms1['BILLING USD']
+                bms1['BMS INVOICED LOCAL'] = bms1['INVOICED LOCAL']
+                bms1['BMS INVOICED USD'] = bms1['INVOICED USD']
 
                 # Level 1 numeric fields for comparison
                 self.level1 = fiw1.subtract(bms1, axis='columns', fill_value=0)
                 self.level1.reset_index(inplace=True)
-                self.level1.rename(columns={'BILLING LOCAL': 'BILLING DELTA LOCAL'}, inplace=True)
-                self.level1['BMS BILLING LOCAL'] = self.level1['BMS BILLING LOCAL'] * -1
-                self.level1.rename(columns={'BILLING USD': 'BILLING DELTA USD'}, inplace=True)
-                self.level1['BMS BILLING USD'] = self.level1['BMS BILLING USD'] * -1
+                self.level1.rename(columns={'INVOICED LOCAL': 'INVOICED DELTA LOCAL'}, inplace=True)
+                self.level1['BMS INVOICED LOCAL'] = self.level1['BMS INVOICED LOCAL'] * -1
+                self.level1.rename(columns={'INVOICED USD': 'INVOICED DELTA USD'}, inplace=True)
+                self.level1['BMS INVOICED USD'] = self.level1['BMS INVOICED USD'] * -1
                 self.level1.fillna(0, inplace=True)
+                # reorder
                 self.level1 = self.level1[level1_view]
 
+                # creating data for Level 2 view
                 fiw2 = self.fiw[cols2].groupby(by=group2).sum()
-                fiw2['FIW BILLING LOCAL'] = fiw2['BILLING LOCAL']
-                fiw2['FIW BILLING USD'] = fiw2['BILLING USD']
+                fiw2['FIW INVOICED LOCAL'] = fiw2['INVOICED LOCAL']
+                fiw2['FIW INVOICED USD'] = fiw2['INVOICED USD']
                 bms2 = self.bms[cols2].groupby(by=group2).sum()
-                bms2['BMS BILLING LOCAL'] = bms2['BILLING LOCAL']
-                bms2['BMS BILLING USD'] = bms2['BILLING USD']
+                bms2['BMS INVOICED LOCAL'] = bms2['INVOICED LOCAL']
+                bms2['BMS INVOICED USD'] = bms2['INVOICED USD']
 
                 # Level 2 numeric fields for comparison
                 self.level2 = fiw2.subtract(bms2, axis='columns', fill_value=0)
                 self.level2.reset_index(inplace=True)
-                self.level2.rename(columns={'BILLING LOCAL': 'BILLING DELTA LOCAL'}, inplace=True)
-                self.level2['BMS BILLING LOCAL'] = self.level2['BMS BILLING LOCAL'] * -1
-                self.level2.rename(columns={'BILLING USD': 'BILLING DELTA USD'}, inplace=True)
-                self.level2['BMS BILLING USD'] = self.level2['BMS BILLING USD'] * -1
+                self.level2.rename(columns={'INVOICED LOCAL': 'INVOICED DELTA LOCAL'}, inplace=True)
+                self.level2['BMS INVOICED LOCAL'] = self.level2['BMS INVOICED LOCAL'] * -1
+                self.level2.rename(columns={'INVOICED USD': 'INVOICED DELTA USD'}, inplace=True)
+                self.level2['BMS INVOICED USD'] = self.level2['BMS INVOICED USD'] * -1
+
                 self.level2.fillna(0, inplace=True)
                 self.level2 = self.level2.merge(div_extract, how='left', on=['CONTRACT', 'MAJOR'])
                 self.level2.loc[self.level2['DIV'].isnull(), 'DIV'] = self.level2['BMDIV']
@@ -354,19 +401,19 @@ class Application(Frame):
 
                 # creating data for YTD view
                 fiw0 = self.fiw[cols0].groupby(by=group0).sum()
-                fiw0['FIW BILLING LOCAL'] = fiw0['BILLING LOCAL']
-                fiw0['FIW BILLING USD'] = fiw0['BILLING USD']
+                fiw0['FIW INVOICED LOCAL'] = fiw0['INVOICED LOCAL']
+                fiw0['FIW INVOICED USD'] = fiw0['INVOICED USD']
                 bms0 = self.bms[cols0].groupby(by=group0).sum()
-                bms0['BMS BILLING LOCAL'] = bms0['BILLING LOCAL']
-                bms0['BMS BILLING USD'] = bms0['BILLING USD']
+                bms0['BMS INVOICED LOCAL'] = bms0['INVOICED LOCAL']
+                bms0['BMS INVOICED USD'] = bms0['INVOICED USD']
 
                 # YTD delta numeric fields for comparison
                 self.ytd_delta = fiw0.subtract(bms0, axis='columns', fill_value=0)
                 self.ytd_delta.reset_index(inplace=True)
-                self.ytd_delta.rename(columns={'BILLING LOCAL': 'BILLING DELTA LOCAL'}, inplace=True)
-                self.ytd_delta['BMS BILLING LOCAL'] = self.ytd_delta['BMS BILLING LOCAL'] * -1
-                self.ytd_delta.rename(columns={'BILLING USD': 'BILLING DELTA USD'}, inplace=True)
-                self.ytd_delta['BMS BILLING USD'] = self.ytd_delta['BMS BILLING USD'] * -1
+                self.ytd_delta.rename(columns={'INVOICED LOCAL': 'INVOICED DELTA LOCAL'}, inplace=True)
+                self.ytd_delta['BMS INVOICED LOCAL'] = self.ytd_delta['BMS INVOICED LOCAL'] * -1
+                self.ytd_delta.rename(columns={'INVOICED USD': 'INVOICED DELTA USD'}, inplace=True)
+                self.ytd_delta['BMS INVOICED USD'] = self.ytd_delta['BMS INVOICED USD'] * -1
                 self.ytd_delta.fillna(0, inplace=True)
                 # reorder
                 self.ytd_delta = self.ytd_delta[ytd_view]
@@ -378,24 +425,28 @@ class Application(Frame):
                 self.bms = self.bms[bms_view]
 
                 messagebox.showinfo(title='Status message',
-                                    message='Data compared successfully')
-            except KeyError:
+                                    message='Data compared successfully.')
+            except KeyError as e:
                 messagebox.showerror(title='Invalid key',
                                      message='Check SQL codes for mismatches in column names.')
-            except Exception:
+
+            except Exception as e:
                 messagebox.showerror(title='Status message',
                                      message='An error has occurred during data comparison.')
 
         else:
             messagebox.showerror(title='Missing input data',
                                  message='FIW or BMS data was not retrieved.')
-            if self.fiw_sql is not None:
+            if self.fiw_sql is not None and self.curr_sql is not None:
                 messagebox.showinfo(title='Query',
-                                    message='FIW data will be retrieved')
+                                    message='FIW data will be retrieved.')
                 self.retrieve_fiw()
+            else:
+                messagebox.showinfo(title='Status message',
+                                    message='FIW or currency SQL is not loaded.')
             if self.bms_sql is not None and self.curr_sql is not None:
                 messagebox.showinfo(title='Query',
-                                    message='BMS data will be retrieved')
+                                    message='BMS data will be retrieved.')
                 self.retrieve_bms()
 
     def saver(self):
@@ -427,8 +478,8 @@ class Application(Frame):
                         max_width.append(h + 2)
                 return max_width
 
-            sheets = {'FIW': [self.fiw, 'AB:AJ'], 'BMS': [self.bms, 'AA:AI'], 'YTD Overview': [self.ytd_delta, 'C:N'],
-                      'Level 1': [self.level1, 'D:O'], 'Level 2': [self.level2, 'I:T']}
+            sheets = {'FIW': [self.fiw, 'AB:AL'], 'BMS': [self.bms, 'AA:AC'], 'YTD Overview': [self.ytd_delta, 'C:P'],
+                      'Level 1': [self.level1, 'D:Q'], 'Level 2': [self.level2, 'I:V']}
             try:
                 # Creates main B2B report and formats output
                 self.busy()
@@ -448,8 +499,8 @@ class Application(Frame):
 
                 # Creates singular customer-only reports
                 for customer in set(self.customers_df['CUSTOMER']):
-                    customer_trimmed = str(customer).replace('/', ' ').replace('*', ' ').replace('\\', ' ').\
-                        replace('?', ' ').replace('[', '').replace(']', '').replace(':', '').replace('\"', '').\
+                    customer_trimmed = str(customer).replace('/', ' ').replace('*', ' ').replace('\\', ' '). \
+                        replace('?', ' ').replace('[', '').replace(']', '').replace(':', '').replace('\"', ''). \
                         replace('<', '').replace('>', '').replace('|', '').replace('"', '').strip('"')
 
                     if len(customer_trimmed) > 30:
@@ -459,7 +510,7 @@ class Application(Frame):
                     individual_view = self.customers_df[self.customers_df['CUSTOMER'] == f'{customer}']
                     workbook = writer_customer.book
                     individual_view.to_excel(writer_customer, sheet_name=f'{customer_trimmed}', index=False)
-                    worksheet = writer_customer.sheets[f'{customer}']
+                    worksheet = writer_customer.sheets[f'{customer_trimmed}']
                     format1 = workbook.add_format({'num_format': '#,##0.00'})
                     worksheet.set_column('H:S', None, format1)
                     w = autofit_columns(individual_view)
@@ -470,10 +521,14 @@ class Application(Frame):
                     writer_customer.close()
 
                 self.not_busy()
+            except PermissionError:
+                messagebox.showerror(title='Permission error',
+                                     message='The file you are trying to overwrite is currently open.\n'
+                                             'Proceed by closing corresponding Excel files and press "Save data" again')
             except Exception:
                 messagebox.showerror(title='Status message',
                                      message='An error occurred during data saving.\n'
-                                             'Check the requirements of input data')
+                                             'Check the requirements of input data.')
             messagebox.showinfo(title='Status message',
                                 message='Data has been saved.')
         else:
